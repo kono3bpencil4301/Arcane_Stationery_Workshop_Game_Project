@@ -1,7 +1,7 @@
 extends Area2D
 
 
-enum State { IDLE, FLY, ATTACK }
+enum State { IDLE, FLY, ATTACK, PIERCE_THROUGH, RETURNING }
 
 var state: State = State.IDLE #当前状态
 var target: Node2D = null #锁定的敌人
@@ -27,7 +27,7 @@ var dash_interval: float = 1.5 #突刺间隔（秒）
 var dash_duration: float = 0.3 #突刺持续时间（保留用于外部调用）
 var dash_speed: float = 400.0 #突刺速度（保留用于外部调用）
 var return_speed: float = 600.0 #返回速度（保留用于外部调用）
-var auto_return: bool = true #突刺结束后是否自动返回（保留用于外部调用）
+var auto_return: bool = true #突刺结束后是否自动返回
 var pierce_count: int = 0 #穿透数
 var current_pierce_left: int = 0 #当前突刺剩余穿透数
 
@@ -68,11 +68,21 @@ func _process(delta: float) -> void:
 		State.ATTACK:
 			# 攻击状态由 AnimationPlayer 控制，不需要额外处理
 			pass
+		State.PIERCE_THROUGH:
+			_process_pierce_through(delta)
+		State.RETURNING:
+			_process_returning(delta)
 
 	# 铅笔朝向逻辑：根据状态决定朝向
 	match state:
 		State.ATTACK:
 			# 攻击时锁定方向
+			pass
+		State.PIERCE_THROUGH:
+			# 穿透时锁定方向
+			pass
+		State.RETURNING:
+			# 返回时锁定方向
 			pass
 		_:
 			# IDLE 和 FLY 状态：指向鼠标方向
@@ -154,6 +164,51 @@ func _process_fly(delta: float) -> void:
 	# 更新位置
 	global_position = target_pos
 
+var pierce_through_speed: float = 400.0  # 穿透后的飞行速度
+var pierce_through_duration: float = 0.8  # 穿透后的飞行时间（秒）
+var _pierce_timer: float = 0.0
+
+func _process_pierce_through(delta: float) -> void:
+	"""穿透后继续飞行的处理"""
+	_pierce_timer += delta
+
+	# 继续沿当前方向移动
+	var direction = Vector2(cos(rotation), sin(rotation))
+	_velocity = direction * pierce_through_speed
+
+	# 超过飞行时间后，返回到玩家身边
+	if _pierce_timer >= pierce_through_duration:
+		_end_pierce_through()
+
+func _end_pierce_through() -> void:
+	"""结束穿透飞行，开始返回到玩家身边"""
+	state = State.RETURNING
+	_pierce_timer = 0.0
+
+func _process_returning(_delta: float) -> void:
+	"""返回到玩家身边的处理"""
+	if not owner_controller:
+		state = State.FLY
+		return
+
+	var player_pos = owner_controller.global_position
+	var to_player = player_pos - global_position
+	var distance = to_player.length()
+
+	# 飞向玩家
+	var return_speed_value = return_speed if return_speed > 0 else 600.0
+	_velocity = to_player.normalized() * return_speed_value
+
+	# 到达玩家附近时回到环绕状态
+	if distance < 30:
+		_end_returning()
+
+func _end_returning() -> void:
+	"""结束返回，进入环绕状态"""
+	state = State.FLY
+	_pierce_timer = 0.0
+	already_hit_targets.clear()
+
 func _play_attack_animation() -> void:
 	"""播放突刺动画"""
 	state = State.ATTACK
@@ -217,10 +272,8 @@ func _handle_collision(col: Node) -> void:
 		# 视觉效果
 		_play_hit_effects(is_crit)
 
-		# 处理穿透
+		# 处理穿透 - 记录穿透次数，但不提前结束动画
 		current_pierce_left -= 1
-		if current_pierce_left < 0:
-			_end_attack_animation()
 
 func _end_attack_animation() -> void:
 	"""提前结束攻击动画"""
