@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cbfwycguo1qpc"]
+
+[ext_resource type="PackedScene" uid="uid://bdwr1md7mvld3" path="res://Assets/Character/player.tscn" id="1_c8m3x"]
+[ext_resource type="PackedScene" uid="uid://cd0rdw3tkrlii" path="res://Scenes/map.tscn" id="1_laxsj"]
+[ext_resource type="PackedScene" uid="uid://cjk6qo35dh62p" path="res://Assets/Enemy/basic_enemy/ink_blobber.tscn" id="5_etw40"]
+
+[node name="Background" type="Node2D" unique_id=319787743]
+
+[node name="Map" parent="." unique_id=742935445 instance=ExtResource("1_laxsj")]
+position = Vector2(960, 1440)
+scale = Vector2(2, 2)
+script = null
+
+[node name="player" parent="." unique_id=1081290530 groups=["player"] instance=ExtResource("1_c8m3x")]
+position = Vector2(960, 540)
+collision_layer = 64
+collision_mask = 128
+move_speed = 150.0
+
+[node name="Camera2D" type="Camera2D" parent="player" unique_id=568328349]
+
+[node name="EnemySpawner" type="Node2D" parent="." unique_id=1177359367]
+
+[node name="InkBlobber" parent="EnemySpawner" unique_id=1052610111 node_paths=PackedStringArray("player_node") groups=["enemies"] instance=ExtResource("5_etw40")]
+position = Vector2(1015, 523)
+motion_mode = 1
+wall_min_slide_angle = 0.0
+player_node = NodePath("../../player")

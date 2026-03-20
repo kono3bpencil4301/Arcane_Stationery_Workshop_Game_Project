@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cjk6qo35dh62p"]
+
+[ext_resource type="Texture2D" uid="uid://pdmdo5odd0ja" path="res://Assets/Enemy/basic_enemy/Ink_Blobber.png" id="1_jmdrq"]
+[ext_resource type="Script" uid="uid://tdpdm113egia" path="res://Assets/Enemy/basic_enemy/ink_blobber.gd" id="1_yy41d"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yy41d"]
+height = 38.0
+
+[node name="InkBlobber" type="CharacterBody2D" unique_id=1052610111]
+collision_layer = 64
+collision_mask = 128
+script = ExtResource("1_yy41d")
+
+[node name="AnimatedSprite2D" type="Sprite2D" parent="." unique_id=705277243]
+texture = ExtResource("1_jmdrq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=758427646]
+position = Vector2(0, -3)
+shape = SubResource("CapsuleShape2D_yy41d")
+
+[node name="Navigation" type="Node2D" parent="." unique_id=157940726]
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation" unique_id=1902864953]
+debug_enabled = true
+
+[node name="Timer" type="Timer" parent="Navigation" unique_id=1614388308]
+wait_time = 0.1
+ignore_time_scale = true
