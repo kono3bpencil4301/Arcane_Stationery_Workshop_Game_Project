@@ -3,7 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://bdwr1md7mvld3" path="res://Assets/Character/player.tscn" id="1_c8m3x"]
 [ext_resource type="PackedScene" uid="uid://cd0rdw3tkrlii" path="res://Scenes/map.tscn" id="1_laxsj"]
 [ext_resource type="Script" uid="uid://d2k84fmv3dkqa" path="res://Scenes/enemy_spawner.gd" id="3_laxsj"]
-[ext_resource type="Script" uid="uid://lgxxi6qm1rdj" path="res://Scripts/Stats.gd" id="5_27ak2"]
 [ext_resource type="PackedScene" uid="uid://cjk6qo35dh62p" path="res://Assets/Enemy/basic_enemy/ink_blobber.tscn" id="5_etw40"]
 
 [node name="Background" type="Node2D" unique_id=319787743]
@@ -25,9 +24,6 @@ move_speed = 150.0
 script = ExtResource("3_laxsj")
 
 [node name="InkBlobber" parent="EnemySpawner" unique_id=1052610111 instance=ExtResource("5_etw40")]
-visible = false
-speed = null
-max_health = 100.0
 
 [node name="InkBlobberTimer" type="Timer" parent="EnemySpawner" unique_id=979462273]
 wait_time = 2.0
@@ -43,8 +39,5 @@ position = Vector2(1332, 428)
 
 [node name="Marker2D3" type="Marker2D" parent="EnemySpawner/EnemyStartPositions" unique_id=309106479]
 position = Vector2(925, 741)
-
-[node name="Stats" type="Node" parent="." unique_id=810981989]
-script = ExtResource("5_27ak2")
 
 [connection signal="timeout" from="EnemySpawner/InkBlobberTimer" to="EnemySpawner" method="_on_ink_blobber_timer_timeout"]

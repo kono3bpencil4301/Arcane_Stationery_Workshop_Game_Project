@@ -2,21 +2,44 @@
 
 [ext_resource type="Texture2D" uid="uid://pdmdo5odd0ja" path="res://Assets/Enemy/basic_enemy/Ink_Blobber.png" id="1_jmdrq"]
 [ext_resource type="Script" uid="uid://tdpdm113egia" path="res://Assets/Enemy/basic_enemy/ink_blobber.gd" id="1_yy41d"]
+[ext_resource type="Script" uid="uid://k8jotmnq3tgy" path="res://Scripts/HitBox.gd" id="3_dp7ko"]
+[ext_resource type="Script" uid="uid://cme7uv6af3n83" path="res://Scripts/HurtBox.gd" id="3_et1ak"]
+[ext_resource type="Script" uid="uid://lgxxi6qm1rdj" path="res://Scripts/Stats.gd" id="5_it2bq"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yy41d"]
-height = 38.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dp7ko"]
+height = 32.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_it2bq"]
+height = 22.0
 
 [node name="InkBlobber" type="CharacterBody2D" unique_id=1052610111]
-collision_layer = 64
-collision_mask = 128
+collision_layer = 4
+collision_mask = 0
 script = ExtResource("1_yy41d")
 
 [node name="AnimatedSprite2D" type="Sprite2D" parent="." unique_id=705277243]
 texture = ExtResource("1_jmdrq")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=758427646]
+[node name="Hitbox" type="Area2D" parent="." unique_id=748273649]
+collision_layer = 0
+collision_mask = 8
+script = ExtResource("3_dp7ko")
+metadata/_custom_type_script = "uid://k8jotmnq3tgy"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=1558351782]
+position = Vector2(0, -1)
+shape = SubResource("CapsuleShape2D_dp7ko")
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=93990241]
 position = Vector2(0, -3)
-shape = SubResource("CapsuleShape2D_yy41d")
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("3_et1ak")
+metadata/_custom_type_script = "uid://cme7uv6af3n83"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1927832809]
+position = Vector2(0, -1)
+shape = SubResource("CapsuleShape2D_dp7ko")
 
 [node name="Navigation" type="Node2D" parent="." unique_id=157940726]
 
@@ -26,3 +49,10 @@ debug_enabled = true
 [node name="Timer" type="Timer" parent="Navigation" unique_id=1614388308]
 wait_time = 0.1
 ignore_time_scale = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2142339191]
+position = Vector2(0, -8)
+shape = SubResource("CapsuleShape2D_it2bq")
+
+[node name="Stats" type="Node" parent="." unique_id=1550376124]
+script = ExtResource("5_it2bq")

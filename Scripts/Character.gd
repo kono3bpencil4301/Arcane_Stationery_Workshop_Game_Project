@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 @export var move_speed: float
 @export var animator: AnimatedSprite2D
+@export var unit_name: String = "Player"
 
 var last_dir := "idle_f"  # 记录当前朝向
 

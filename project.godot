@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 window/size/viewport_width=640
 window/size/viewport_height=360
+window/size/window_width_override=1920
+window/size/window_height_override=1080
 window/stretch/mode="viewport"
 
 [dotnet]
@@ -56,6 +58,9 @@ right={
 
 2d_physics/layer_1="world"
 2d_physics/layer_2="player"
+2d_physics/layer_3="enemy"
+2d_physics/layer_4="PlayerHurtbox"
+2d_physics/layer_5="EnemyHurtbox"
 
 [physics]
 

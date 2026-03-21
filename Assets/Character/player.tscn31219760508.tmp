@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://db1ec7iogduqy" path="res://Scripts/Character.gd" id="1_arqli"]
 [ext_resource type="Texture2D" uid="uid://doc4vdtnrqb7q" path="res://Assets/Character/Wenny.png" id="1_obe0k"]
-[ext_resource type="Script" uid="uid://bv581l1jdx0xl" path="res://Scripts/Pencil_Weapon_Manager.gd" id="3_rbqg2"]
+[ext_resource type="Script" uid="uid://bv581l1jdx0xl" path="res://Scripts/rotate.gd" id="3_rbqg2"]
 [ext_resource type="Script" uid="uid://cme7uv6af3n83" path="res://Scripts/HurtBox.gd" id="4_rbqg2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_arqli"]
@@ -250,5 +250,5 @@ script = ExtResource("4_rbqg2")
 metadata/_custom_type_script = "uid://cme7uv6af3n83"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1439391772]
-position = Vector2(0, -6)
+position = Vector2(0, 4.5)
 shape = SubResource("RectangleShape2D_rbqg2")

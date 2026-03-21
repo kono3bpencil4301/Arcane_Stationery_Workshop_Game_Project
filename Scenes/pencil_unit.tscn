@@ -2,79 +2,173 @@
 
 [ext_resource type="Script" uid="uid://8qx3vxnoj3gp" path="res://Scripts/pencil_unit.gd" id="1_u2y7c"]
 [ext_resource type="Texture2D" uid="uid://bjwwpxwd2wdx7" path="res://Assets/Weapon/Pencil_Weapon.png" id="2_g42i1"]
+[ext_resource type="Script" uid="uid://k8jotmnq3tgy" path="res://Scripts/HitBox.gd" id="2_swney"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_quo6u"]
 size = Vector2(88, 11)
 
-[sub_resource type="Animation" id="Animation_u2y7c"]
-resource_name = "Dash"
-length = 1.2083334
-step = 0.041666668
+[sub_resource type="Animation" id="Animation_q4c5y"]
+resource_name = "Attack_Back"
+length = 0.6
 tracks/0/type = "bezier"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("CollisionShape2D:position:x")
+tracks/0/path = NodePath("Pencil/pivot:position:x")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"handle_modes": PackedInt32Array(0, 0, 0, 0, 0, 0, 0),
-"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 2.2, 0, 0, 0, 0, 120, -0.25, 0, 0.25, 0, 120, -0.027777776, 0, 0, 0, 1, -0.020833334, 0.26666668, 0, 0, -12, -0.041666668, 0, 0.03472222, 0, 0, -0.07638889, 0, 0, 0),
-"times": PackedFloat32Array(0, 0.125, 0.5416667, 0.625, 0.8333334, 0.9583334, 1.1666667)
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(120, -0.25, 0, 0.25, 0, -30, -0.033333335, 0, 0, 0, 0, -0.016666671, 0, 0, 0),
+"times": PackedFloat32Array(0, 0.26666665, 0.5333334)
 }
 tracks/1/type = "bezier"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Node2D/Sprite2D:position:x")
+tracks/1/path = NodePath("Pencil/pivot:scale:x")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"handle_modes": PackedInt32Array(0, 0, 0, 0, 0, 0, 0),
-"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 1.6, 0, 0, 0, 0, 120, -0.25, 0, 0.25, 0, 120, -0.027777776, 0, 0, 0, 1, -0.020833334, 0.26666668, 0, 0, -12, -0.041666668, 0, 0.03472222, 0, 0, -0.07638889, 0, 0, 0),
-"times": PackedFloat32Array(0, 0.125, 0.5416667, 0.625, 0.8333334, 0.9583334, 1.1666667)
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.2, -0.04444445, 0.16666667, 0, 0, 1, -0.04444445, 0.13333336, 0, 0),
+"times": PackedFloat32Array(0, 0.26666668, 0.53333336)
 }
 tracks/2/type = "bezier"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Node2D/Sprite2D:scale:x")
+tracks/2/path = NodePath("Pencil/pivot:scale:y")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"handle_modes": PackedInt32Array(0, 0, 0, 0),
-"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.6, -0.041666668, 0.16666667, 0, 0, 1, -0.020833334, 0.10000001, 0, 0, 1, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0, 0.375, 0.8333334, 1.2083334)
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.8, -0.04444445, 0.16666667, 0, 0, 1, -0.04444445, 0, 0, 0),
+"times": PackedFloat32Array(0, 0.26666668, 0.53333336)
 }
 tracks/3/type = "bezier"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Node2D/Sprite2D:scale:y")
+tracks/3/path = NodePath("Pencil/HitBox:position:x")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"handle_modes": PackedInt32Array(0, 0, 0, 0),
-"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.6, -0.041666668, 0.16666667, 0, 0, 1, -0.020833334, 0.10000001, 0, 0, 1, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0, 0.375, 0.8333334, 1.2083334)
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(120, -0.25, 0, 0.25, 0, -30, -0.033333335, 0, 0, 0, 0, -0.016666671, 0, 0, 0),
+"times": PackedFloat32Array(0, 0.26666665, 0.5333334)
 }
 tracks/4/type = "bezier"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("CollisionShape2D:scale:x")
+tracks/4/path = NodePath("Pencil/HitBox:scale:x")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"handle_modes": PackedInt32Array(0, 0, 0, 0),
-"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.6, -0.041666668, 0.16666667, 0, 0, 1, -0.020833334, 0.10000001, 0, 0, 1, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0, 0.375, 0.8333334, 1.2083334)
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.2, -0.04444445, 0.16666667, 0, 0, 1, -0.04444445, 0.13333336, 0, 0),
+"times": PackedFloat32Array(0, 0.26666668, 0.53333336)
 }
 tracks/5/type = "bezier"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("CollisionShape2D:scale:y")
+tracks/5/path = NodePath("Pencil/HitBox:scale:y")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.8, -0.04444445, 0.16666667, 0, 0, 1, -0.04444445, 0, 0, 0),
+"times": PackedFloat32Array(0, 0.26666668, 0.53333336)
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Pencil/HitBox:disabled")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, true]
+}
+
+[sub_resource type="Animation" id="Animation_u2y7c"]
+resource_name = "Attack_Out"
+length = 0.6
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Pencil/pivot:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0, -0.016666671, 0, 0, 0, -30, -0.033333335, 0, 0, 0, 120, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Pencil/pivot:scale:x")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(2, 2, 2, 2),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.8, -0.02777778, 0.16666669, 0, 0, 1.6, -0.03888889, -0.019444445, 0.027777776, 0.013888888, 1, -0.06666666, 0.13333334, 0, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4, 0.56666666)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Pencil/pivot:scale:y")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 2, 2, 2),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.2, -0.02777778, 0.16666669, 0, 0, 0.8, -0.03888889, 0.019444453, 0.027777776, -0.013888893, 1, -0.06666666, 0.2, 0, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4, 0.56666666)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Pencil/HitBox:position:x")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0, -0.016666671, 0, 0, 0, -30, -0.033333335, 0, 0, 0, 120, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4)
+}
+tracks/4/type = "bezier"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Pencil/HitBox:scale:x")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.8, -0.02777778, 0.16666669, 0, 0, 1.6, -0.03888889, -0.019444445, 0.027777776, 0.013888888, 1, -0.06666666, 0.13333334, 0, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4, 0.56666666)
+}
+tracks/5/type = "bezier"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Pencil/HitBox:scale:y")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
 "handle_modes": PackedInt32Array(0, 0, 0, 0),
-"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0.6, -0.041666668, 0.16666667, 0, 0, 1, -0.020833334, 0.10000001, 0, 0, 1, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0, 0.375, 0.8333334, 1.2083334)
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1.2, -0.02777778, 0.16666669, 0, 0, 0.8, -0.03888889, 0.019444453, 0.027777776, -0.013888893, 1, -0.06666666, 0.2, 0, 0),
+"times": PackedFloat32Array(0, 0.16666667, 0.4, 0.56666666)
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Pencil/HitBox:disabled")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.56666666),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, false]
 }
 
 [sub_resource type="Animation" id="Animation_g42i1"]
@@ -82,95 +176,80 @@ length = 0.001
 tracks/0/type = "bezier"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("CollisionShape2D:position:x")
+tracks/0/path = NodePath("Pencil/pivot:position:x")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(39, -0.25, 0, 0.25, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "bezier"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Node2D/Sprite2D:position:x")
+tracks/1/path = NodePath("Pencil/pivot:scale:x")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(120, -0.25, 0, 0.25, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
 "times": PackedFloat32Array(0)
 }
 tracks/2/type = "bezier"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Node2D/Sprite2D:scale:x")
+tracks/2/path = NodePath("Pencil/pivot:scale:y")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(0.5, -0.25, 0, 0.25, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
 "times": PackedFloat32Array(0)
 }
-tracks/3/type = "bezier"
+tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Node2D/Sprite2D:scale:y")
+tracks/3/path = NodePath("Pencil/HitBox:disabled")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(0.5, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0)
-}
-tracks/4/type = "bezier"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("CollisionShape2D:scale:x")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(0.5, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0)
-}
-tracks/5/type = "bezier"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("CollisionShape2D:scale:y")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(0.5, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0)
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_swney"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_u2y7c"]
 _data = {
-&"Dash": SubResource("Animation_u2y7c"),
+&"Attack_Back": SubResource("Animation_q4c5y"),
+&"Attack_Out": SubResource("Animation_u2y7c"),
 &"RESET": SubResource("Animation_g42i1")
 }
 
-[node name="PencilUnit" type="Area2D" unique_id=2147026318]
-position = Vector2(40, 0)
-scale = Vector2(0.5, 0.5)
-collision_mask = 65
+[node name="PencilUnit" type="Node2D" unique_id=1525027978 groups=["enemies"]]
 script = ExtResource("1_u2y7c")
-idle_follow_speed = 20.0
-base_damage = 6.0
 
-[node name="Node2D" type="Node2D" parent="." unique_id=843309711]
+[node name="Pencil" type="Area2D" parent="." unique_id=2147026318]
+scale = Vector2(0.6, 0.4)
+collision_layer = 0
+collision_mask = 16
+script = ExtResource("2_swney")
 
-[node name="Sprite2D" type="Sprite2D" parent="Node2D" unique_id=280774153]
-position = Vector2(120, 0)
-scale = Vector2(0.5, 0.5)
+[node name="pivot" type="Node2D" parent="Pencil" unique_id=843309711]
+scale = Vector2(1e-05, 1e-05)
+
+[node name="Sprite2D" type="Sprite2D" parent="Pencil/pivot" unique_id=280774153]
 texture = ExtResource("2_g42i1")
+metadata/_edit_lock_ = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=37842398]
-position = Vector2(39, 0)
-scale = Vector2(0.5, 0.5)
+[node name="HitBox" type="CollisionShape2D" parent="Pencil" unique_id=37842398]
+position = Vector2(120, 0)
 shape = SubResource("RectangleShape2D_quo6u")
+metadata/_edit_lock_ = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=173777999]
-libraries/ = SubResource("AnimationLibrary_swney")
+[node name="Timer" type="Timer" parent="Pencil" unique_id=810195184]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pencil" unique_id=1921381879]
+root_node = NodePath("../..")
+libraries/ = SubResource("AnimationLibrary_u2y7c")
+autoplay = &"Attack_Out"
