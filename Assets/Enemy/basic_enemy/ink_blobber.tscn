@@ -237,6 +237,7 @@ shape = SubResource("CapsuleShape2D_dp7ko")
 [node name="Navigation" type="Node2D" parent="." unique_id=157940726]
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation" unique_id=1902864953]
+path_desired_distance = 10.0
 debug_enabled = true
 
 [node name="Timer" type="Timer" parent="Navigation" unique_id=1614388308]

@@ -1,6 +1,6 @@
 extends Node2D
 
-var pencil_scene: PackedScene = preload("res://Scenes/pencil_unit.tscn")
+@export var pencil_scene: PackedScene = preload("res://Scenes/pencil_unit.tscn")
 
 @export var orbit_radius: float = 48.0
 @export var number_of_pencil: int = 3
