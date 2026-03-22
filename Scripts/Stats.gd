@@ -5,7 +5,7 @@ signal no_health
 signal health_changed(value: int)
 
 @export var max_health: int = 50
-var health: int = 50:
+var health: int:
 	set(value):
 		var clamped_value := clampi(value, 0, max_health)
 		if health == clamped_value:

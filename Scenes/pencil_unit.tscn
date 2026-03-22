@@ -234,6 +234,7 @@ scale = Vector2(0.6, 0.4)
 collision_layer = 0
 collision_mask = 16
 script = ExtResource("2_swney")
+damage = 10
 
 [node name="pivot" type="Node2D" parent="Pencil" unique_id=843309711]
 scale = Vector2(1e-05, 1e-05)
@@ -243,7 +244,6 @@ texture = ExtResource("2_g42i1")
 metadata/_edit_lock_ = true
 
 [node name="HitBox" type="CollisionShape2D" parent="Pencil" unique_id=37842398]
-position = Vector2(120, 0)
 shape = SubResource("RectangleShape2D_quo6u")
 metadata/_edit_lock_ = true
 

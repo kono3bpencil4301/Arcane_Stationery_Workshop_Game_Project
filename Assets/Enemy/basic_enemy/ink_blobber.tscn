@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cjk6qo35dh62p"]
 
 [ext_resource type="Texture2D" uid="uid://pdmdo5odd0ja" path="res://Assets/Enemy/basic_enemy/Ink_Blobber.png" id="1_jmdrq"]
-[ext_resource type="Script" uid="uid://tdpdm113egia" path="res://Assets/Enemy/basic_enemy/ink_blobber.gd" id="1_yy41d"]
+[ext_resource type="Script" uid="uid://tdpdm113egia" path="res://Scripts/Ememy/ink_blobber.gd" id="1_yy41d"]
 [ext_resource type="Script" uid="uid://k8jotmnq3tgy" path="res://Scripts/HitBox.gd" id="3_dp7ko"]
 [ext_resource type="Script" uid="uid://cme7uv6af3n83" path="res://Scripts/HurtBox.gd" id="3_et1ak"]
 [ext_resource type="Script" uid="uid://lgxxi6qm1rdj" path="res://Scripts/Stats.gd" id="5_it2bq"]
@@ -9,21 +9,214 @@
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dp7ko"]
 height = 32.0
 
+[sub_resource type="Animation" id="Animation_2bu17"]
+resource_name = "Die"
+length = 0.4
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:modulate:r")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448),
+"times": PackedFloat32Array(0, 0.13333334, 0.26666665)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:modulate:g")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448),
+"times": PackedFloat32Array(0, 0.13333334, 0.26666665)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:modulate:b")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448),
+"times": PackedFloat32Array(0, 0.13333334, 0.26666665)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:modulate:a")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0, 2),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 0, -0.06666667, 0.16666667, 0, 0),
+"times": PackedFloat32Array(0, 0.4)
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("HurtBox:monitorable")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_it2bq"]
+resource_name = "Hurt"
+length = 0.4
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:modulate:r")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 2, 0, 0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448, 1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0, 0.10000001, 0.23333333, 0.36666667)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:modulate:g")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 2, 0, 0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448, 1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0, 0.10000001, 0.23333333, 0.36666667)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:modulate:b")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 2, 0, 0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0, 18.892157, -0.01666667, -2.9820263, 0, 0, 0, -0.02777778, 1.6566812, 0.02222222, -1.3253448, 1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0, 0.10000001, 0.23333333, 0.36666667)
+}
+
+[sub_resource type="Animation" id="Animation_tru7i"]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:modulate:g")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:modulate:b")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:modulate:r")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:modulate:a")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(100, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Hitbox:monitoring")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("HurtBox:monitorable")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_sxjll"]
+resource_name = "Search"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Hitbox:monitoring")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2bu17"]
+_data = {
+&"Die": SubResource("Animation_2bu17"),
+&"Hurt": SubResource("Animation_it2bq"),
+&"RESET": SubResource("Animation_tru7i"),
+&"Search": SubResource("Animation_sxjll")
+}
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_it2bq"]
-height = 22.0
+height = 32.0
 
 [node name="InkBlobber" type="CharacterBody2D" unique_id=1052610111]
 collision_layer = 4
-collision_mask = 0
+collision_mask = 4
 script = ExtResource("1_yy41d")
 
 [node name="AnimatedSprite2D" type="Sprite2D" parent="." unique_id=705277243]
+modulate = Color(1, 1, 1, 100)
 texture = ExtResource("1_jmdrq")
 
 [node name="Hitbox" type="Area2D" parent="." unique_id=748273649]
-collision_layer = 0
+collision_layer = 4
 collision_mask = 8
 script = ExtResource("3_dp7ko")
+damage = 15
 metadata/_custom_type_script = "uid://k8jotmnq3tgy"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=1558351782]
@@ -50,9 +243,12 @@ debug_enabled = true
 wait_time = 0.1
 ignore_time_scale = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2142339191]
-position = Vector2(0, -8)
-shape = SubResource("CapsuleShape2D_it2bq")
-
 [node name="Stats" type="Node" parent="." unique_id=1550376124]
 script = ExtResource("5_it2bq")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=994985540]
+libraries/ = SubResource("AnimationLibrary_2bu17")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2142339191]
+position = Vector2(0, -4)
+shape = SubResource("CapsuleShape2D_it2bq")

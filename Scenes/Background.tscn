@@ -26,8 +26,6 @@ script = ExtResource("3_laxsj")
 
 [node name="InkBlobber" parent="EnemySpawner" unique_id=1052610111 instance=ExtResource("5_etw40")]
 visible = false
-speed = null
-max_health = 100.0
 
 [node name="InkBlobberTimer" type="Timer" parent="EnemySpawner" unique_id=979462273]
 wait_time = 2.0

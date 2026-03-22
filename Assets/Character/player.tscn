@@ -4,9 +4,46 @@
 [ext_resource type="Texture2D" uid="uid://doc4vdtnrqb7q" path="res://Assets/Character/Wenny.png" id="1_obe0k"]
 [ext_resource type="Script" uid="uid://bv581l1jdx0xl" path="res://Scripts/Pencil_Weapon_Manager.gd" id="3_rbqg2"]
 [ext_resource type="Script" uid="uid://cme7uv6af3n83" path="res://Scripts/HurtBox.gd" id="4_rbqg2"]
+[ext_resource type="Script" uid="uid://lgxxi6qm1rdj" path="res://Scripts/Stats.gd" id="5_mter1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_arqli"]
 size = Vector2(4.75, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rbqg2"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(0, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mter1"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(32, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uqgoc"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(64, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2mwth"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(96, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x2s47"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(128, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8lnuh"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(160, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l224w"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(0, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1w4fe"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(32, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5a153"]
+atlas = ExtResource("1_obe0k")
+region = Rect2(64, 160, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_arqli"]
 atlas = ExtResource("1_obe0k")
@@ -106,6 +143,41 @@ region = Rect2(96, 32, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_qtmb6"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rbqg2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mter1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uqgoc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2mwth")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x2s47")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8lnuh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l224w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1w4fe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5a153")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5a153")
+}],
+"loop": false,
+"name": &"die",
+"speed": 6.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_arqli")
@@ -220,7 +292,168 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rbqg2"]
-size = Vector2(20, 15)
+size = Vector2(20, 29.25)
+
+[sub_resource type="Animation" id="Animation_rbqg2"]
+resource_name = "Die"
+length = 3.0
+step = 0.083333336
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate:a")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1, -0.2777778, 0.16666669, 0, 0, 0, -0.08333336, 0.16666667, 0, 0),
+"times": PackedFloat32Array(0, 1.3333334, 1.8333334)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"die"]
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 10, -0.2777778, 0, 0, 0),
+"times": PackedFloat32Array(0.16666667, 1.3333333)
+}
+tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("..")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(2.8333333),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"die"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_uqgoc"]
+resource_name = "Hurt"
+length = 0.4
+step = 0.1
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate:r")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(2, 0, 0),
+"points": PackedFloat32Array(1, -0.25015467, -1.2507733, 0.1, 0.5, 256, -0.175, 0, 0, 0, 1, -0.092229724, 1, 0.24999148, -2.7105303),
+"times": PackedFloat32Array(0, 0.3, 0.4)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate:g")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 5, -0.033333335, 0.16666667, 0, 0, 1, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.2, 0.4)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:modulate:b")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 5, -0.033333335, 0.16666667, 0, 0, 1, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.2, 0.4)
+}
+
+[sub_resource type="Animation" id="Animation_2mwth"]
+resource_name = "Move"
+step = 0.1
+
+[sub_resource type="Animation" id="Animation_mter1"]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate:a")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:modulate:r")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:modulate:g")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/4/type = "bezier"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:modulate:b")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.2, 0, 0.2, 0),
+"times": PackedFloat32Array(0)
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_uqgoc"]
+_data = {
+&"Die": SubResource("Animation_rbqg2"),
+&"Hurt": SubResource("Animation_uqgoc"),
+&"Move": SubResource("Animation_2mwth"),
+&"RESET": SubResource("Animation_mter1")
+}
 
 [node name="Player" type="CharacterBody2D" unique_id=967988784 node_paths=PackedStringArray("animator")]
 collision_layer = 2
@@ -231,24 +464,36 @@ animator = NodePath("Character")
 metadata/_edit_lock_ = true
 
 [node name="Collision" type="CollisionShape2D" parent="." unique_id=463786752]
+visible = false
 position = Vector2(-0.5, 8)
 scale = Vector2(4, 4)
 shape = SubResource("RectangleShape2D_arqli")
 
 [node name="Character" type="AnimatedSprite2D" parent="." unique_id=1131252954]
 sprite_frames = SubResource("SpriteFrames_qtmb6")
-animation = &"move_b"
+animation = &"die"
 metadata/_edit_lock_ = true
 
 [node name="PencilWeaponSystem" type="Node2D" parent="." unique_id=169401940]
 script = ExtResource("3_rbqg2")
 
 [node name="HurtBox" type="Area2D" parent="." unique_id=2056440666]
+position = Vector2(0, 3)
 collision_layer = 8
-collision_mask = 0
+collision_mask = 4
 script = ExtResource("4_rbqg2")
 metadata/_custom_type_script = "uid://cme7uv6af3n83"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1439391772]
-position = Vector2(0, -6)
+position = Vector2(0, -3.375)
 shape = SubResource("RectangleShape2D_rbqg2")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=921476749]
+root_node = NodePath("../Character")
+libraries/ = SubResource("AnimationLibrary_uqgoc")
+
+[node name="Stats" type="Node" parent="." unique_id=71859793]
+script = ExtResource("5_mter1")
+metadata/_custom_type_script = "uid://lgxxi6qm1rdj"
+
+[connection signal="hurt" from="HurtBox" to="." method="_on_hurt_box_hurt"]
