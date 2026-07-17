@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://cqepg4x7scty3"]
+
+[ext_resource type="Texture2D" uid="uid://djrd1popnfq68" path="res://assets/enemy/003_The_Mold_Spore_Small_Ani.png" id="1_uxo3x"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_16ged"]
+atlas = ExtResource("1_uxo3x")
+region = Rect2(0, 0, 36, 36)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b2hq3"]
+atlas = ExtResource("1_uxo3x")
+region = Rect2(36, 0, 36, 36)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_27axw"]
+atlas = ExtResource("1_uxo3x")
+region = Rect2(72, 0, 36, 36)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_83l5l"]
+atlas = ExtResource("1_uxo3x")
+region = Rect2(108, 0, 36, 36)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wvhbo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_16ged")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b2hq3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_27axw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_83l5l")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 9.0
+}]
+
+[node name="TheMoldSpore" type="Node2D" unique_id=1473407693]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=33004665]
+sprite_frames = SubResource("SpriteFrames_wvhbo")
+frame_progress = 0.43665504

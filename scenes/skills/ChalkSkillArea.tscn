@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://bqy8fovhcta55"]
+
+[ext_resource type="Script" uid="uid://5v5suy27from" path="res://scripts/skill/damage/ChalkSkillArea.cs" id="1_chalk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chalk"]
+size = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Gradient_chalk"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_chalk"]
+gradient = SubResource("Gradient_chalk")
+width = 1
+height = 1
+
+[node name="ChalkSkillArea" type="Area2D" unique_id=1231411105]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+script = ExtResource("1_chalk")
+Duration = 5.0
+DamageType = 2
+AreaWidth = 16.0
+AreaColor = Color(1, 1, 1, 0.58)
+ParticleColor = Color(1, 1, 1, 0.85)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1806966413]
+shape = SubResource("RectangleShape2D_chalk")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1830100849]
+visible = false
+z_index = -1
+texture = SubResource("GradientTexture2D_chalk")
+
+[node name="Timer" type="Timer" parent="." unique_id=436174436]
+wait_time = 0.5

@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://uhi45munt7ht"]
+
+[ext_resource type="Texture2D" uid="uid://bc1d7ff7kkat5" path="res://assets/enemy/002_The_Crispy_Paged_Doll_Ani.png" id="1_rpg1t"]
+[ext_resource type="Script" uid="uid://bteby43qhq0rf" path="res://scripts/enemy/enemy_type/TheCrispyPagedDoll.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cg5x4th5q1tx" path="res://assets/enemy/002_The_Crispy_Paged_Doll_Dash.png" id="2_dash"]
+[ext_resource type="Texture2D" uid="uid://ccrt6y0qwxfqo" path="res://assets/enemy/002_The_Crispy_Paged_Doll_Dizzy.png" id="3_dizzy"]
+[ext_resource type="Texture2D" uid="uid://b7hqcpsjo5bp5" path="res://assets/icons/warning_icon.png" id="4_warning"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/projectiles/crispy_paper_scrap.tscn" id="5_scrap"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_fold"]
+atlas = ExtResource("2_dash")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dash_move"]
+atlas = ExtResource("2_dash")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dizzy"]
+atlas = ExtResource("3_dizzy")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b7kwb"]
+atlas = ExtResource("1_rpg1t")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8febg"]
+atlas = ExtResource("1_rpg1t")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_afbv0"]
+atlas = ExtResource("1_rpg1t")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qpfp2"]
+atlas = ExtResource("1_rpg1t")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wvhbo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_fold")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dash_move")
+}],
+"loop": 1,
+"name": &"dash",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b7kwb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8febg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_afbv0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qpfp2")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dizzy")
+}],
+"loop": true,
+"name": &"dizzy",
+"speed": 1.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wvhbo"]
+size = Vector2(20, 31)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ifow5"]
+size = Vector2(20, 31)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_abi3o"]
+size = Vector2(20, 21)
+
+[node name="TheCrispyPagedDoll" type="CharacterBody2D" unique_id=849441943 groups=["enemy"]]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_script")
+ObservationDistanceTolerance = 30.0
+ObservationDuration = 0.5
+ChargeWindupDuration = 0.2
+ChargeSpeedMultiplier = 4.0
+ChargeDamageMultiplier = 1.5
+MaximumChargeDuration = 0.9
+WallStunDuration = 0.8
+WallImpactDamage = 5.0
+WarningIconTexture = ExtResource("4_warning")
+ExplosionChance = 0.5
+PaperScrapScene = ExtResource("5_scrap")
+MinimumScrapCount = 3
+MaximumScrapCount = 5
+ScrapDamage = 5.0
+ScrapSpeed = 180.0
+ScrapLifetime = 0.75
+ScrapSpawnRadius = 12.0
+ContactDamage = 15.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1840543123]
+sprite_frames = SubResource("SpriteFrames_wvhbo")
+autoplay = "default"
+frame = 3
+frame_progress = 0.5864361
+
+[node name="CollisionLayer" type="CollisionShape2D" parent="." unique_id=1393560490]
+position = Vector2(0, 0.5)
+shape = SubResource("RectangleShape2D_wvhbo")
+
+[node name="HitBox" type="CollisionShape2D" parent="." unique_id=321441987]
+position = Vector2(0, 0.5)
+shape = SubResource("RectangleShape2D_ifow5")
+
+[node name="HurtBox" type="CollisionShape2D" parent="." unique_id=2097739184]
+position = Vector2(1, -7)
+shape = SubResource("RectangleShape2D_abi3o")

@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://50vfbwjmm7wp"]
+
+[ext_resource type="Script" uid="uid://dg5732h0ai4ef" path="res://scripts/skill/damage/PencilSkillArea.cs" id="1_pencil"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pencil"]
+size = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Gradient_pencil"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_pencil"]
+gradient = SubResource("Gradient_pencil")
+width = 1
+height = 1
+
+[node name="PencilSkillArea" type="Area2D" unique_id=1268650069]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+script = ExtResource("1_pencil")
+DamagePerTick = 5.0
+DamageType = 1
+AreaColor = Color(0.025, 0.025, 0.025, 0.72)
+ParticleColor = Color(0.08, 0.08, 0.08, 0.9)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1282141957]
+shape = SubResource("RectangleShape2D_pencil")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=928661790]
+z_index = -1
+texture = SubResource("GradientTexture2D_pencil")
+
+[node name="Timer" type="Timer" parent="." unique_id=912236781]
+wait_time = 0.5

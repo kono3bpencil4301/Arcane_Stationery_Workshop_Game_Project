@@ -1,0 +1,90 @@
+[gd_scene format=3 uid="uid://t10l75fs5teo"]
+
+[ext_resource type="Texture2D" uid="uid://cktomm6hdta72" path="res://assets/weapon/chalk/chalk_explosion.png" id="1_iq2ib"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6u7ao"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(0, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ld20r"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(84, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pivgm"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(168, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uwfty"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(252, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fxfjj"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(336, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_irnye"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(420, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3alim"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(504, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ssduq"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(588, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8oo2a"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(672, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sk5o4"]
+atlas = ExtResource("1_iq2ib")
+region = Rect2(756, 0, 84, 84)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ifow5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6u7ao")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ld20r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pivgm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uwfty")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fxfjj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_irnye")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3alim")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ssduq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8oo2a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sk5o4")
+}, {
+"duration": 1.0,
+"texture": null
+}],
+"loop": 0,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="ChalkWeaponExplosion" type="Node2D" unique_id=204207593]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=85365135]
+sprite_frames = SubResource("SpriteFrames_ifow5")
+autoplay = "default"

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="GameAudioLibrary" format=3 uid="uid://b5herhng6odm4"]
+
+[ext_resource type="Script" path="res://Scripts/audio/GameAudioLibrary.gd" id="1_300er"]
+[ext_resource type="AudioStream" uid="uid://1op2wu2shsmm" path="res://assets/audio/Enemy/SFX_Enemy_Death_01.wav" id="2_a20mc"]
+[ext_resource type="AudioStream" uid="uid://b4wym0gn0o7iy" path="res://assets/audio/PickUp/SFX_Exp_Collect.wav" id="3_g6xh8"]
+[ext_resource type="AudioStream" uid="uid://b2l8ougy1fo1l" path="res://assets/audio/UI/SFX_LevelUp_Open.wav" id="4_da148"]
+[ext_resource type="AudioStream" uid="uid://6akvkbw0c8hs" path="res://assets/audio/Weapons/SFX_Attacked_Critical_01.wav" id="5_xoq7f"]
+[ext_resource type="AudioStream" uid="uid://bajytcspft33k" path="res://assets/audio/Weapons/SFX_Pencil_Hit_01.wav" id="6_72sk7"]
+[ext_resource type="AudioStream" uid="uid://cw0pmg4ycebgt" path="res://assets/audio/Weapons/SFX_Pencil_Hit_02.wav" id="7_3m2kq"]
+[ext_resource type="AudioStream" uid="uid://dpyak6a5tqlm1" path="res://assets/audio/Weapons/SFX_Pencil_Thrust.wav" id="8_5pr26"]
+[ext_resource type="AudioStream" uid="uid://d0hx4trvno5cd" path="res://assets/audio/Player/SFX_Player_Death.wav" id="9_i0cm4"]
+[ext_resource type="AudioStream" uid="uid://cf12dq23uw24a" path="res://assets/audio/Player/SFX_Player_Hurt.wav" id="10_1m8cc"]
+[ext_resource type="AudioStream" uid="uid://c1tfwc4povk8o" path="res://assets/audio/UI/SFX_UI_Click.wav" id="11_7ltcw"]
+[ext_resource type="AudioStream" uid="uid://pff24ugv6t32" path="res://assets/audio/UI/SFX_UI_Hover.wav" id="12_l3v6n"]
+[ext_resource type="AudioStream" uid="uid://c3pqpv3yuoacp" path="res://assets/audio/UI/SFX_Upgrade_Select.wav" id="13_eo3t7"]
+
+[resource]
+script = ExtResource("1_300er")
+sfx_ui_click = ExtResource("11_7ltcw")
+sfx_ui_hover = ExtResource("12_l3v6n")
+sfx_level_up_open = ExtResource("4_da148")
+sfx_upgrade_select = ExtResource("13_eo3t7")
+sfx_pickup_collect = ExtResource("3_g6xh8")
+sfx_exp_collect = ExtResource("3_g6xh8")
+sfx_pencil_thrust = ExtResource("8_5pr26")
+sfx_pencil_hits = Array[AudioStream]([ExtResource("6_72sk7"), ExtResource("7_3m2kq")])
+sfx_pencil_crit_hit = ExtResource("5_xoq7f")
+sfx_enemy_death = ExtResource("2_a20mc")
+sfx_player_hurt = ExtResource("10_1m8cc")
+sfx_player_death = ExtResource("9_i0cm4")
+metadata/_custom_type_script = "uid://cu004enumnqsw"

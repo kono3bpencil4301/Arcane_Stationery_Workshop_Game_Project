@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://cmudj6jbmvdqy"]
+
+[ext_resource type="Script" uid="uid://b0oidjxmce17r" path="res://scripts/combat/weapons/concrete/ChalkProjectile.cs" id="1_fkuai"]
+[ext_resource type="Texture2D" uid="uid://dy2exf7ognp1e" path="res://assets/weapon/chalk/chalk_cracked.png" id="2_5ksey"]
+[ext_resource type="PackedScene" uid="uid://t10l75fs5teo" path="res://scenes/weapons/chalk_weapon_explosion.tscn" id="2_fkuai"]
+[ext_resource type="Texture2D" uid="uid://cfsthch3svdar" path="res://assets/weapon/chalk/chalk_normal.png" id="4_x8kch"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wvhbo"]
+radius = 3.0
+height = 20.0
+
+[node name="ChalkProjectile" type="CharacterBody2D" unique_id=307107011 node_paths=PackedStringArray("ChalkNormalSprite", "ChalkCrackedSprite")]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_fkuai")
+FirstHitDamage = 12.0
+SecondHitDamage = 15.0
+EnemyCollisionMask = 13
+ExplosionVfxScene = ExtResource("2_fkuai")
+ChalkNormalSprite = NodePath("ChalkNormal")
+ChalkCrackedSprite = NodePath("ChalkCracked")
+
+[node name="ChalkCracked" type="Sprite2D" parent="." unique_id=1468888030]
+visible = false
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_5ksey")
+
+[node name="ChalkNormal" type="Sprite2D" parent="." unique_id=1896164414]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("4_x8kch")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1413719300]
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_wvhbo")

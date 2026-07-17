@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://cl6lutsicwbl8"]
+
+[ext_resource type="Script" uid="uid://5s5m2xpckg18" path="res://scripts/combat/weapons/concrete/ChalkWeapon.cs" id="1_74e8b"]
+[ext_resource type="Texture2D" uid="uid://cfsthch3svdar" path="res://assets/weapon/chalk/chalk_normal.png" id="1_rfp0q"]
+[ext_resource type="PackedScene" uid="uid://cmudj6jbmvdqy" path="res://scenes/weapons/chalk_weapon_muzzle.tscn" id="2_76338"]
+[ext_resource type="Script" uid="uid://6m5po2yk6h74" path="res://scripts/skill/drawing/PaintBrushData.cs" id="2_i86it"]
+[ext_resource type="PackedScene" path="res://scenes/skills/ChalkSkillArea.tscn" id="3_skill"]
+
+[sub_resource type="Resource" id="Resource_ifow5"]
+script = ExtResource("2_i86it")
+BrushSize = 6
+FadeDelay = 0.0
+FadeDuration = 6.0
+metadata/_custom_type_script = "uid://6m5po2yk6h74"
+
+[node name="ChalkWeapon" type="Node2D" unique_id=253248931 node_paths=PackedStringArray("Muzzle")]
+script = ExtResource("1_74e8b")
+ProjectileScene = ExtResource("2_76338")
+Muzzle = NodePath("Muzzle")
+NormalHitChargePercent = 3.0
+PaintBrushData = SubResource("Resource_ifow5")
+SkillDamageAreaScene = ExtResource("3_skill")
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=307107011]
+
+[node name="Visual" type="Node2D" parent="." unique_id=1844082599]
+
+[node name="ChalkNormal" type="Sprite2D" parent="Visual" unique_id=2080403092]
+position = Vector2(0, 6)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("1_rfp0q")

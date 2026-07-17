@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/skill/damage/SkillDamageArea.cs" id="1_base"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
+size = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Gradient_base"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_base"]
+gradient = SubResource("Gradient_base")
+width = 1
+height = 1
+
+[node name="SkillDamageArea" type="Area2D"]
+collision_layer = 0
+collision_mask = 4
+monitoring = true
+monitorable = false
+script = ExtResource("1_base")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_base")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = -1
+texture = SubResource("GradientTexture2D_base")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.5
+

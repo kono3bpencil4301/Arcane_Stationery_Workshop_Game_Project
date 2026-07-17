@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dni1mbkjxfk36"]
+
+[ext_resource type="Texture2D" uid="uid://xwxv6muvdlo6" path="res://assets/weapon/pencil/pencil_weapon.png" id="1_0xpgg"]
+[ext_resource type="Script" uid="uid://bqhu4me2xtu6m" path="res://scripts/combat/weapons/concrete/PencilWeapon.cs" id="1_miyd3"]
+[ext_resource type="Script" uid="uid://6m5po2yk6h74" path="res://scripts/skill/drawing/PaintBrushData.cs" id="2_brush"]
+[ext_resource type="PackedScene" path="res://scenes/skills/PencilSkillArea.tscn" id="3_skill"]
+
+[sub_resource type="Resource" id="Resource_pencil_brush"]
+script = ExtResource("2_brush")
+BrushColor = Color(0.02, 0.02, 0.02, 1)
+BrushSize = 4
+MaxStrokeLength = 1200.0
+MinValidLength = 24.0
+MaxDrawDuration = 6.0
+FadeDelay = 0.0
+FadeDuration = 4.0
+metadata/_custom_type_script = "uid://6m5po2yk6h74"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wvhbo"]
+size = Vector2(45, 5)
+
+[node name="PencilWeapon" type="Node2D" unique_id=1008865702]
+script = ExtResource("1_miyd3")
+NormalHitChargePercent = 2.5
+SkillHitChargePercent = 1.0
+pencilThrustSpeed = 300.0
+PaintBrushData = SubResource("Resource_pencil_brush")
+SkillDamageAreaScene = ExtResource("3_skill")
+
+[node name="Visual" type="Sprite2D" parent="." unique_id=1262077867]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_0xpgg")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1977630463]
+collision_layer = 8
+collision_mask = 4
+
+[node name="HitBox" type="CollisionShape2D" parent="Area2D" unique_id=1164840689]
+position = Vector2(-0.5, 0.5)
+shape = SubResource("RectangleShape2D_wvhbo")

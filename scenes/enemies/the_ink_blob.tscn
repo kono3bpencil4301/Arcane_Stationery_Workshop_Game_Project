@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://qsrqd6nloxb7"]
+
+[ext_resource type="Script" uid="uid://b0gl1eccvvwmo" path="res://scripts/enemy/enemy_type/TheInkBlob.cs" id="1_tgqpw"]
+[ext_resource type="Texture2D" uid="uid://raunanrcb77v" path="res://assets/enemy/001_The_Ink_Blob_Ani.png" id="2_l0akn"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0"]
+atlas = ExtResource("2_l0akn")
+region = Rect2(0, 0, 32, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1"]
+atlas = ExtResource("2_l0akn")
+region = Rect2(32, 0, 32, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2"]
+atlas = ExtResource("2_l0akn")
+region = Rect2(64, 0, 32, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3"]
+atlas = ExtResource("2_l0akn")
+region = Rect2(96, 0, 32, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ink_blob"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 9.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape_collision"]
+radius = 11.7047
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape_hurt"]
+radius = 9.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape_hit"]
+radius = 9.0
+height = 28.0
+
+[node name="TheInkBlob" type="CharacterBody2D" unique_id=558587576 groups=["enemy"]]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_tgqpw")
+PollutionRadius = 20.0
+PollutionDuration = 3.0
+PollutionColor = Color(0.3075, 0, 0.41, 0.5647059)
+MaxHealth = 80.0
+MoveSpeed = 60.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=38213705]
+sprite_frames = SubResource("SpriteFrames_ink_blob")
+autoplay = "default"
+frame_progress = 0.8776815
+
+[node name="CollisionLayer" type="CollisionShape2D" parent="." unique_id=1309163852]
+shape = SubResource("CircleShape_collision")
+
+[node name="HurtBox" type="CollisionShape2D" parent="." unique_id=362083372]
+shape = SubResource("CapsuleShape_hurt")
+
+[node name="HitBox" type="CollisionShape2D" parent="." unique_id=393145606]
+shape = SubResource("CapsuleShape_hit")
