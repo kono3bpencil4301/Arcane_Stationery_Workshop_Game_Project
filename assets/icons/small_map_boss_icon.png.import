@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://djrd1popnfq68"
-path="res://.godot/imported/003_The_Mold_Spore_Small_Ani.png-bc2bc6a056a1a245d31bc417260e44f4.ctex"
+uid="uid://1bxtwyxprwh"
+path="res://.godot/imported/small_map_boss_icon.png-75f9a3d00b4f1f4934ad70c19c98f439.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemy/003_The_Mold_Spore_Small_Ani.png"
-dest_files=["res://.godot/imported/003_The_Mold_Spore_Small_Ani.png-bc2bc6a056a1a245d31bc417260e44f4.ctex"]
+source_file="res://assets/icons/small_map_boss_icon.png"
+dest_files=["res://.godot/imported/small_map_boss_icon.png-75f9a3d00b4f1f4934ad70c19c98f439.ctex"]
 
 [params]
 

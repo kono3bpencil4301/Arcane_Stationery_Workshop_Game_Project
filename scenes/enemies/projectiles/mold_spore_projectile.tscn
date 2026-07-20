@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://sbb4l2xv5h2x" path="res://scripts/enemy/projectiles/MoldSporeProjectile.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://sf65vhyeeoii" path="res://assets/enemy/003_The_Spore.png" id="2_spore"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_spore"]
+radius = 3.5
+
+[node name="TheMoldSpotFungusSpore" type="CharacterBody2D" groups=["enemy_projectile", "erasable"]]
+collision_layer = 16
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_spore")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_spore")

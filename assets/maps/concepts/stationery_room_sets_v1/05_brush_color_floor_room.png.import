@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cjcpi8t4j5hto"
-path="res://.godot/imported/003_The_Mold_Spore_Ani.png-517eacfb7d018bed10042257e9d0035a.ctex"
+uid="uid://bp2ojsekc7qnd"
+path="res://.godot/imported/05_brush_color_floor_room.png-4f8c8ad389d28e9d540bb1d2d17f40c8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemy/003_The_Mold_Spore_Ani.png"
-dest_files=["res://.godot/imported/003_The_Mold_Spore_Ani.png-517eacfb7d018bed10042257e9d0035a.ctex"]
+source_file="res://assets/maps/concepts/stationery_room_sets_v1/05_brush_color_floor_room.png"
+dest_files=["res://.godot/imported/05_brush_color_floor_room.png-4f8c8ad389d28e9d540bb1d2d17f40c8.ctex"]
 
 [params]
 

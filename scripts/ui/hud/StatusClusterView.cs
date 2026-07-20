@@ -5,6 +5,8 @@ public partial class StatusClusterView : Control
     private Player _player;
     private SharedSkillCharge _skillCharge;
     private RunHudState _runState;
+    private DungeonGenerator _dungeonGenerator;
+    private TextureProgressBar _roomExplorationProgress;
     private Label _floorLabel;
     private Label _healthLabel;
     private Label _pollutionLabel;
@@ -16,12 +18,14 @@ public partial class StatusClusterView : Control
     public void Bind(
         Player player,
         SharedSkillCharge skillCharge,
-        RunHudState runState
+        RunHudState runState,
+        DungeonGenerator dungeonGenerator
     )
     {
         _player = player;
         _skillCharge = skillCharge;
         _runState = runState;
+        _dungeonGenerator = dungeonGenerator;
     }
 
     public override void _Ready()
@@ -60,11 +64,31 @@ public partial class StatusClusterView : Control
         AddTexture("res://assets/ui/HUD/HUD-01_0001s_0000_HP-Line.png");
         AddTexture("res://assets/ui/HUD/HUD-01_0002s_0000_PP-Line.png");
 
-        // The diamond is the foreground cap: keep its complete layer stack
-        // above every bar so no fill or outline cuts across it.
-        AddTexture("res://assets/ui/HUD/HUD-01_0000s_0002_EXP-B.png");
-        AddTexture("res://assets/ui/HUD/HUD-01_0000s_0001_EXP-A.png");
-        AddTexture("res://assets/ui/HUD/HUD-01_0000s_0000_EXP-Line.png");
+        // Use the same diamond silhouette for the dim underlay and the bright
+        // fill. EXP-Line has an opaque gray lower half, so clipping that asset
+        // made an empty bar look full during most of the encounter.
+        Texture2D explorationMask = GD.Load<Texture2D>(
+            "res://assets/ui/HUD/HUD-01_0000s_0002_EXP-B.png"
+        );
+        _roomExplorationProgress = new TextureProgressBar
+        {
+            Name = "RoomExplorationProgress",
+            MinValue = 0.0,
+            MaxValue = 100.0,
+            Step = 0.01,
+            Value = 0.0,
+            FillMode = (int)TextureProgressBar.FillModeEnum.BottomToTop,
+            TextureUnder = explorationMask,
+            TextureProgress = explorationMask,
+            TintUnder = new Color(0.28f, 0.28f, 0.34f, 1.0f),
+            TintProgress = new Color(0.15f, 2.2f, 2.8f, 1.0f),
+            MouseFilter = MouseFilterEnum.Ignore,
+            Position = Vector2.Zero,
+            Size = new Vector2(276, 105),
+            TextureFilter = TextureFilterEnum.Nearest
+        };
+        AddChild(_roomExplorationProgress);
+        AddDiamondOutline();
 
         _floorLabel = MakeLabel(new Rect2(9, 40, 88, 20), 11);
         _floorLabel.HorizontalAlignment = HorizontalAlignment.Center;
@@ -97,6 +121,21 @@ public partial class StatusClusterView : Control
 
         int floor = _runState?.FloorNumber ?? 1;
         _floorLabel.Text = $"楼层 {floor:00}";
+
+        float explorationPercent = _dungeonGenerator != null
+            ? _dungeonGenerator.RoomExplorationRatio * 100.0f
+            :
+            (_runState?.HasRoomExploration == true
+                ? _runState.RoomExplorationRatio * 100.0f
+                : 0.0f);
+        if(_roomExplorationProgress != null)
+        {
+            _roomExplorationProgress.Value = Mathf.Clamp(
+                explorationPercent,
+                0.0f,
+                100.0f
+            );
+        }
 
         float health = _player?.CurrentHealth ?? 0.0f;
         float maxHealth = _player?.MaxHealth ?? 1.0f;
@@ -131,6 +170,31 @@ public partial class StatusClusterView : Control
             TextureFilter = TextureFilterEnum.Nearest
         };
         AddChild(textureRect);
+    }
+
+    private void AddDiamondOutline()
+    {
+        ShaderMaterial outlineMaterial = new()
+        {
+            Shader = GD.Load<Shader>(
+                "res://shaders/ui/diamond_outline_only.gdshader"
+            )
+        };
+        TextureRect outline = new()
+        {
+            Name = "RoomExplorationOutline",
+            Texture = GD.Load<Texture2D>(
+                "res://assets/ui/HUD/HUD-01_0000s_0001_EXP-A.png"
+            ),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.Keep,
+            MouseFilter = MouseFilterEnum.Ignore,
+            Position = Vector2.Zero,
+            Size = new Vector2(276, 105),
+            Material = outlineMaterial,
+            TextureFilter = TextureFilterEnum.Nearest
+        };
+        AddChild(outline);
     }
 
     private ShaderMaterial AddProgressTexture(

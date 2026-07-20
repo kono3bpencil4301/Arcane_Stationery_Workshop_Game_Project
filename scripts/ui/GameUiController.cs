@@ -24,20 +24,34 @@ public partial class GameUiController : CanvasLayer
             player?.GetNodeOrNull<InventoryModel>("Inventory");
         EquipmentModel equipment =
             player?.GetNodeOrNull<EquipmentModel>("Equipment");
+        ConsumableUseController consumableUse =
+            player?.GetNodeOrNull<ConsumableUseController>(
+                "ConsumableUseController"
+            );
         RunHudState runState =
             player?.GetNodeOrNull<RunHudState>("RunHudState");
         _paintController = player?.GetNodeOrNull<PaintStrokeController>(
             "WeaponManager/PaintStrokeController"
         );
-        EnemySpawner spawner = GetTree().CurrentScene?
-            .GetNodeOrNull<EnemySpawner>("EnemySpawnerTileLayer");
+        Node gameplayRoot = player?.GetParent();
+        EnemySpawner spawner = gameplayRoot?
+            .GetNodeOrNull<EnemySpawner>("EnemySpawnerTileLayer") ??
+            GetTree().CurrentScene?
+                .GetNodeOrNull<EnemySpawner>("EnemySpawnerTileLayer");
+        DungeonGenerator dungeonGenerator = gameplayRoot?
+            .GetNodeOrNull<DungeonGenerator>("DungeonGenerator") ??
+            GetTree().CurrentScene?
+                .GetNodeOrNull<DungeonGenerator>("DungeonGenerator");
+        MinimapPanel minimap = GetNodeOrNull<MinimapPanel>("MinimapPanel");
+        minimap?.Bind(dungeonGenerator, player);
 
         if (
             player == null ||
             weaponManager == null ||
             skillCharge == null ||
             inventory == null ||
-            equipment == null
+            equipment == null ||
+            consumableUse == null
         )
         {
             GD.PushError("GameUI 找不到玩家 HUD 依赖，界面未初始化。");
@@ -54,7 +68,7 @@ public partial class GameUiController : CanvasLayer
         AddChild(root);
 
         StatusClusterView status = new();
-        status.Bind(player, skillCharge, runState);
+        status.Bind(player, skillCharge, runState, dungeonGenerator);
         status.Position = new Vector2(12, 10);
         root.AddChild(status);
 
@@ -68,6 +82,19 @@ public partial class GameUiController : CanvasLayer
         timer.OffsetBottom = 44;
         root.AddChild(timer);
 
+        RoomNameView roomName = new()
+        {
+            Name = "RoomNameView"
+        };
+        roomName.Bind(dungeonGenerator);
+        roomName.AnchorLeft = 0.5f;
+        roomName.AnchorRight = 0.5f;
+        roomName.OffsetLeft = -120;
+        roomName.OffsetTop = 48;
+        roomName.OffsetRight = 120;
+        roomName.OffsetBottom = 72;
+        root.AddChild(roomName);
+
         WeaponBarView weaponBar = new();
         weaponBar.Bind(weaponManager);
         weaponBar.AnchorTop = 1.0f;
@@ -80,6 +107,8 @@ public partial class GameUiController : CanvasLayer
 
         EquipmentBarView equipmentBar = new();
         equipmentBar.Bind(equipment, inventory);
+        equipmentBar.UseRequested += slotIndex =>
+            consumableUse.TryUseSlot(slotIndex);
         equipmentBar.AnchorLeft = 0.5f;
         equipmentBar.AnchorRight = 0.5f;
         equipmentBar.AnchorTop = 1.0f;

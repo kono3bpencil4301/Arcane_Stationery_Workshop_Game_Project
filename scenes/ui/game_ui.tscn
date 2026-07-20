@@ -1,7 +1,33 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://c6vwmlfln8jw3"]
 
-[ext_resource type="Script" path="res://scripts/ui/GameUiController.cs" id="1_game_ui"]
+[ext_resource type="Script" uid="uid://cdym1fa4posbi" path="res://scripts/ui/GameUiController.cs" id="1_game_ui"]
+[ext_resource type="Script" uid="uid://cmxj048v6gg3m" path="res://scripts/ui/minimap/MinimapPanel.cs" id="2_minimap"]
+[ext_resource type="Texture2D" uid="uid://c6xrd68tlkckc" path="res://assets/icons/small_map_start_icon.png" id="3_yvtb5"]
+[ext_resource type="Texture2D" uid="uid://bljip48u4vngx" path="res://assets/icons/small_map_combat_icon.png" id="4_k7elv"]
+[ext_resource type="Texture2D" uid="uid://b86ts7g65ejfl" path="res://assets/icons/small_map_safe_icon.png" id="5_fftnl"]
+[ext_resource type="Texture2D" uid="uid://d37w7ufd0pyij" path="res://assets/icons/small_map_extraction_icon.png" id="6_bxde6"]
+[ext_resource type="Texture2D" uid="uid://bpx00c44smqbp" path="res://assets/icons/small_map_loot_icon.png" id="7_opxtl"]
+[ext_resource type="Texture2D" uid="uid://1bxtwyxprwh" path="res://assets/icons/small_map_boss_icon.png" id="8_crnce"]
 
-[node name="GameUI" type="CanvasLayer"]
+[node name="GameUI" type="CanvasLayer" unique_id=176858919]
 layer = 20
 script = ExtResource("1_game_ui")
+
+[node name="MinimapPanel" type="Control" parent="." unique_id=290632227]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -252.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 180.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("2_minimap")
+StartIcon = ExtResource("3_yvtb5")
+CombatIcon = ExtResource("4_k7elv")
+SafeIcon = ExtResource("5_fftnl")
+ExtractionIcon = ExtResource("6_bxde6")
+LootIcon = ExtResource("7_opxtl")
+BossIcon = ExtResource("8_crnce")

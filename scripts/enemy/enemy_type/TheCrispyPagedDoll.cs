@@ -768,9 +768,18 @@ public partial class TheCrispyPagedDoll : EnemyBase
                 ScrapSpeed,
                 ScrapLifetime
             );
-            parent.AddChild(scrap);
-            scrap.GlobalPosition =
+            Vector2 scrapSpawnPosition =
                 GlobalPosition + direction * spawnRadius;
+
+            // Die 可能由 Area2D.BodyEntered 等物理查询回调触发。
+            // 查询刷新期间不能把带碰撞形状的 CharacterBody2D 加入场景，
+            // 因此将 AddChild 延迟，并在入树后再设置全局坐标。
+            scrap.TreeEntered += () =>
+            {
+                if(GodotObject.IsInstanceValid(scrap))
+                    scrap.GlobalPosition = scrapSpawnPosition;
+            };
+            parent.CallDeferred(Node.MethodName.AddChild, scrap);
         }
     }
 

@@ -48,6 +48,10 @@ public partial class Player : CharacterBody2D, IDamageable
         new(1.0f, 0.25f, 0.2f, 1.0f);
 
     [Export]
+    public Color HealingNumberColor { get; set; } =
+        new(0.35f, 1.0f, 0.55f, 1.0f);
+
+    [Export]
     public Vector2 DamageNumberOffset { get; set; } =
         new(0.0f, -30.0f);
 
@@ -73,6 +77,7 @@ public partial class Player : CharacterBody2D, IDamageable
 
     public float CurrentHealth { get; private set; }
     public bool IsDead { get; private set; }
+    public bool MovementLocked { get; private set; }
     public float HealthRatio =>
         MaxHealth <= 0.0f
             ? 0.0f
@@ -95,6 +100,7 @@ public partial class Player : CharacterBody2D, IDamageable
         IsDead = false;
         _isInvulnerable = false;
         _sceneResetScheduled = false;
+        MovementLocked = false;
 
         _bodySprite =
             GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
@@ -119,6 +125,13 @@ public partial class Player : CharacterBody2D, IDamageable
         if (IsDead)
         {
             Velocity = Vector2.Zero;
+            return;
+        }
+
+        if(MovementLocked)
+        {
+            Velocity = Vector2.Zero;
+            UpdateAnimation();
             return;
         }
 
@@ -202,6 +215,42 @@ public partial class Player : CharacterBody2D, IDamageable
             0.0f,
             1.0f
         );
+    }
+
+    public void SetMovementLocked(bool locked)
+    {
+        MovementLocked = locked && !IsDead;
+
+        if(MovementLocked)
+            Velocity = Vector2.Zero;
+    }
+
+    public float RestoreHealth(float amount)
+    {
+        if(IsDead || amount <= 0.0f)
+            return 0.0f;
+
+        float previousHealth = CurrentHealth;
+        CurrentHealth = Mathf.Min(
+            Mathf.Max(MaxHealth, 1.0f),
+            CurrentHealth + amount
+        );
+        float restored = CurrentHealth - previousHealth;
+
+        if(restored <= 0.0f)
+            return 0.0f;
+
+        FloatingDamageNumber.SpawnHealing(
+            this,
+            restored,
+            HealingNumberColor,
+            DamageNumberOffset,
+            DamageNumberRiseDistance,
+            DamageNumberDuration,
+            DamageNumberFontSize
+        );
+        EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+        return restored;
     }
 
     private void ApplyDamage(
@@ -310,6 +359,7 @@ public partial class Player : CharacterBody2D, IDamageable
             return;
 
         IsDead = true;
+        MovementLocked = false;
         _isInvulnerable = true;
         Velocity = Vector2.Zero;
         EmitSignal(SignalName.Died);

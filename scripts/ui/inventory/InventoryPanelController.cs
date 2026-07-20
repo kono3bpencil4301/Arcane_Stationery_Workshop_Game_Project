@@ -286,7 +286,8 @@ public partial class InventoryPanelController : Control
         }
 
         _weightLabel.Text =
-            $"负重  {_inventory.CurrentWeight:0.0} / {_inventory.MaxWeight:0.0}";
+            $"负重  {_inventory.CurrentWeight:0.0} / " +
+            $"{_inventory.MaxWeight:0.0} kg";
 
         if (_selectedEntry != null && !_inventory.Contains(_selectedEntry))
             _selectedEntry = null;
@@ -333,13 +334,16 @@ public partial class InventoryPanelController : Control
         _detailBody.Text =
             $"类别：{CategoryName(data.Category)}\n" +
             $"数量：{_selectedEntry.Quantity}\n" +
-            $"重量：{_selectedEntry.TotalWeight:0.0}\n" +
+            $"重量：{_selectedEntry.TotalWeight:0.0} kg\n" +
             $"价值：{data.Value}\n" +
             $"污染：{(data.IsPolluted ? "是" : "否")}";
         _equipButton.Disabled =
             !_selectedEntry.IsWeapon &&
             !data.IsEquipable &&
             !data.IsQuickUsable;
+        _equipButton.Text = data.IsQuickUsable
+            ? "放入快捷栏"
+            : "装备";
         _dropButton.Disabled =
             _selectedEntry is InventoryWeaponEntry weaponEntry &&
             !weaponEntry.Weapon.CanDrop;

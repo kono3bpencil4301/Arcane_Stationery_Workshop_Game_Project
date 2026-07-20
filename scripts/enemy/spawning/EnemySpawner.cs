@@ -21,6 +21,9 @@ public partial class EnemySpawner : TileMapLayer
         string eventName
     );
 
+    [Signal]
+    public delegate void TimelineCompletedEventHandler();
+
     [ExportCategory("Wave Timeline")]
 
     [Export]
@@ -42,6 +45,11 @@ public partial class EnemySpawner : TileMapLayer
 
     public bool IsRunning { get; private set; }
 
+    /// <summary>
+    /// 怪潮计时结束后仍保持为 true，直到房间清除所有现存敌人。
+    /// </summary>
+    public bool EncounterActive { get; private set; }
+
     public float CurrentProgressPercent { get; private set; }
 
     public double ElapsedSeconds => _elapsedSeconds;
@@ -49,7 +57,13 @@ public partial class EnemySpawner : TileMapLayer
     public double CycleDurationSeconds =>
         Timeline == null
             ? 0.0
-            : Math.Max(Timeline.CycleDurationSeconds, 1.0f);
+            : _cycleDurationSecondsOverride > 0.0
+                ? _cycleDurationSecondsOverride
+                : Math.Max(Timeline.CycleDurationSeconds, 1.0f);
+
+    public double RemainingSeconds => EncounterActive
+        ? Math.Max(CycleDurationSeconds - _elapsedSeconds, 0.0)
+        : 0.0;
 
     public EnemyWaveEvent CurrentEvent { get; private set; }
 
@@ -60,7 +74,10 @@ public partial class EnemySpawner : TileMapLayer
     private Node _enemyParent;
     private double _elapsedSeconds;
     private double _spawnCountdown;
+    private double _cycleDurationSecondsOverride;
     private int _currentEventIndex = -1;
+    private bool _timelineCompleted;
+    private bool _spawnCellsExplicitlyConfigured;
 
     public override void _Ready()
     {
@@ -68,7 +85,8 @@ public partial class EnemySpawner : TileMapLayer
             Visible = false;
 
         _random.Randomize();
-        CacheSpawnCells();
+        if(!_spawnCellsExplicitlyConfigured)
+            CacheSpawnCells();
         ResolveEnemyParent();
         RebuildTimeline();
 
@@ -102,20 +120,22 @@ public partial class EnemySpawner : TileMapLayer
             _spawnCountdown = Math.Max(CurrentEvent.Wave.SpawnInterval, 0.05f);
     }
 
-    public void StartSpawning()
+    public bool StartSpawning()
     {
         if(_spawnCells.Count == 0)
         {
             GD.PushWarning($"{Name} 没有已绘制的生成格子，敌人生成器未启动。");
             IsRunning = false;
-            return;
+            EncounterActive = false;
+            return false;
         }
 
         if(_orderedEvents.Count == 0)
         {
             GD.PushWarning($"{Name} 没有有效的怪潮事件，敌人生成器未启动。");
             IsRunning = false;
-            return;
+            EncounterActive = false;
+            return false;
         }
 
         if(!GodotObject.IsInstanceValid(_enemyParent))
@@ -125,15 +145,19 @@ public partial class EnemySpawner : TileMapLayer
         {
             GD.PushWarning($"{Name} 找不到敌人父节点: {EnemyParentPath}");
             IsRunning = false;
-            return;
+            EncounterActive = false;
+            return false;
         }
 
         _elapsedSeconds = 0.0;
         CurrentProgressPercent = 0.0f;
         _currentEventIndex = -1;
         CurrentEvent = null;
+        _timelineCompleted = false;
+        EncounterActive = true;
         IsRunning = true;
         ActivateEventForProgress(CurrentProgressPercent, true);
+        return true;
     }
 
     public void StopSpawning()
@@ -141,10 +165,51 @@ public partial class EnemySpawner : TileMapLayer
         IsRunning = false;
     }
 
-    public void RestartTimeline()
+    public bool RestartTimeline()
     {
+        _cycleDurationSecondsOverride = 0.0;
         RebuildTimeline();
-        StartSpawning();
+        return StartSpawning();
+    }
+
+    public bool RestartTimeline(float cycleDurationSeconds)
+    {
+        _cycleDurationSecondsOverride = Math.Max(
+            cycleDurationSeconds,
+            1.0f
+        );
+        RebuildTimeline();
+        return StartSpawning();
+    }
+
+    /// <summary>
+    /// 怪物房清理完成后结束本次遭遇，并让 HUD 回到非战斗状态。
+    /// </summary>
+    public void EndEncounter()
+    {
+        IsRunning = false;
+        EncounterActive = false;
+        _timelineCompleted = false;
+    }
+
+    /// <summary>
+    /// 显式指定当前怪物房可使用的生成格。
+    /// TileMapLayer 可以继续显示全地牢的污渍，但不会再跨房间随机生成。
+    /// </summary>
+    public void ConfigureSpawnCells(IEnumerable<Vector2I> cells)
+    {
+        _spawnCells.Clear();
+        _spawnCellsExplicitlyConfigured = true;
+        HashSet<Vector2I> uniqueCells = new();
+
+        if(cells == null)
+            return;
+
+        foreach(Vector2I cell in cells)
+        {
+            if(uniqueCells.Add(cell))
+                _spawnCells.Add(cell);
+        }
     }
 
     public Node2D SpawnOneEnemy()
@@ -176,7 +241,7 @@ public partial class EnemySpawner : TileMapLayer
 
     private void AdvanceTimeline(double delta)
     {
-        double duration = Math.Max(Timeline.CycleDurationSeconds, 1.0f);
+        double duration = CycleDurationSeconds;
         _elapsedSeconds += delta;
 
         if(Timeline.LoopTimeline)
@@ -200,6 +265,17 @@ public partial class EnemySpawner : TileMapLayer
         }
 
         ActivateEventForProgress(CurrentProgressPercent, false);
+
+        if(
+            !Timeline.LoopTimeline &&
+            _elapsedSeconds >= duration &&
+            !_timelineCompleted
+        )
+        {
+            _timelineCompleted = true;
+            IsRunning = false;
+            EmitSignal(SignalName.TimelineCompleted);
+        }
     }
 
     private void ActivateEventForProgress(float progressPercent, bool force)

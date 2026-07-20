@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://xwxv6muvdlo6" path="res://assets/weapon/pencil/pencil_weapon.png" id="1_0xpgg"]
 [ext_resource type="Script" uid="uid://bqhu4me2xtu6m" path="res://scripts/combat/weapons/concrete/PencilWeapon.cs" id="1_miyd3"]
 [ext_resource type="Script" uid="uid://6m5po2yk6h74" path="res://scripts/skill/drawing/PaintBrushData.cs" id="2_brush"]
-[ext_resource type="PackedScene" path="res://scenes/skills/PencilSkillArea.tscn" id="3_skill"]
+[ext_resource type="PackedScene" uid="uid://50vfbwjmm7wp" path="res://scenes/skills/PencilSkillArea.tscn" id="3_skill"]
 
 [sub_resource type="Resource" id="Resource_pencil_brush"]
 script = ExtResource("2_brush")
@@ -21,8 +21,7 @@ size = Vector2(45, 5)
 
 [node name="PencilWeapon" type="Node2D" unique_id=1008865702]
 script = ExtResource("1_miyd3")
-NormalHitChargePercent = 2.5
-SkillHitChargePercent = 1.0
+pencilThrustDamage = 20.0
 pencilThrustSpeed = 300.0
 PaintBrushData = SubResource("Resource_pencil_brush")
 SkillDamageAreaScene = ExtResource("3_skill")

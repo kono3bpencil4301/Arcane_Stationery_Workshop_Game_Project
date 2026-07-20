@@ -56,7 +56,7 @@ script = ExtResource("1_tgqpw")
 PollutionRadius = 20.0
 PollutionDuration = 3.0
 PollutionColor = Color(0.3075, 0, 0.41, 0.5647059)
-MaxHealth = 80.0
+MaxHealth = 70.0
 MoveSpeed = 60.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=38213705]

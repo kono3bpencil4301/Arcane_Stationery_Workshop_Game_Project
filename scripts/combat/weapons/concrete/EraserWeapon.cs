@@ -2,7 +2,8 @@ using Godot;
 using System.Collections.Generic;
 
 /// <summary>
-/// 半常驻辅助武器：装备后持续公转并造成接触伤害；选中时主橡皮可擦除；
+/// 半常驻辅助武器：装备后三块橡皮等间隔公转，常驻擦除弹幕、污染并击退敌人；
+/// 只有被选中时，三块轨道橡皮才会造成接触伤害；
 /// 按住右键会生成一块受距离限制的小橡皮，沿鼠标轨迹进行更高等级的擦除与伤害判定。
 /// </summary>
 public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
@@ -24,6 +25,17 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
 
     [Export(PropertyHint.Range, "-180,180,1")]
     public float eraserSelfRotationOffsetDegrees = 0.0f;
+
+    [ExportCategory("Orbit Erasers")]
+
+    [Export]
+    public Node2D OrbitEraser1 { get; set; }
+
+    [Export]
+    public Node2D OrbitEraser2 { get; set; }
+
+    [Export]
+    public Node2D OrbitEraser3 { get; set; }
 
     [ExportCategory("Orbit Contact")]
 
@@ -67,17 +79,19 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
     [Export(PropertyHint.Range, "0.05,5,0.05")]
     public float MiniEraserDamageInterval { get; set; } = 0.25f;
 
-    private readonly Dictionary<ulong, ulong> _orbitHitTimes = new();
+    private readonly Dictionary<ulong, ulong> _orbitDamageHitTimes = new();
+    private readonly Dictionary<ulong, ulong> _orbitRepelHitTimes = new();
     private readonly Dictionary<ulong, ulong> _miniHitTimes = new();
     private readonly HashSet<ulong> _eraseCandidateIds = new();
+    private readonly List<Node2D> _orbitErasers = new(3);
+    private readonly Vector2[] _previousOrbitPositions = new Vector2[3];
+    private readonly bool[] _hasPreviousOrbitPositions = new bool[3];
 
     private Node2D _player;
     private InkPollutionField _pollutionField;
     private Node2D _miniEraser;
 
     private float _orbitAngle;
-    private bool _hasPreviousOrbitPosition;
-    private Vector2 _previousOrbitPosition;
     private bool _hasPreviousMiniPosition;
     private Vector2 _previousMiniPosition;
 
@@ -90,6 +104,8 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
         Data.OperationMode = WeaponOperationMode.Hybrid;
         Data.ShowVisualWhenUnselected = true;
         ResolvePlayer();
+        ResolveOrbitErasers();
+        UpdateOrbit(0.0f);
     }
 
     public override void _Process(double delta)
@@ -98,7 +114,7 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
 
         if (Instance == null || !IsEquipped)
         {
-            _hasPreviousOrbitPosition = false;
+            ResetOrbitTracking();
             return;
         }
 
@@ -110,32 +126,39 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
         if (Instance == null || !IsEquipped)
             return;
 
-        Vector2 orbitPosition = GlobalPosition;
-        Vector2 orbitFrom = _hasPreviousOrbitPosition
-            ? _previousOrbitPosition
-            : orbitPosition;
-
-        DamageEnemiesAlongSegment(
-            orbitFrom,
-            orbitPosition,
-            eraserContactRadius,
-            eraserThrustDamage,
-            eraserDamageInterval,
-            _orbitHitTimes
-        );
-
-        if (IsSelected)
+        for(int index = 0; index < _orbitErasers.Count; index++)
         {
+            Node2D eraser = _orbitErasers[index];
+
+            if(!GodotObject.IsInstanceValid(eraser))
+                continue;
+
+            Vector2 orbitPosition = eraser.GlobalPosition;
+            Vector2 orbitFrom = _hasPreviousOrbitPositions[index]
+                ? _previousOrbitPositions[index]
+                : orbitPosition;
+
+            AffectEnemiesAlongSegment(
+                orbitFrom,
+                orbitPosition,
+                eraserContactRadius,
+                eraserThrustDamage,
+                eraserDamageInterval,
+                IsSelected,
+                _orbitDamageHitTimes,
+                _orbitRepelHitTimes
+            );
+
             EraseAlongSegment(
                 orbitFrom,
                 orbitPosition,
                 eraserEraseRadius,
                 eraserEraseLevel
             );
-        }
 
-        _previousOrbitPosition = orbitPosition;
-        _hasPreviousOrbitPosition = true;
+            _previousOrbitPositions[index] = orbitPosition;
+            _hasPreviousOrbitPositions[index] = true;
+        }
     }
 
     protected override void AutoAttack()
@@ -170,14 +193,69 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
             _orbitAngle + Mathf.DegToRad(eraserRotateSpeed) * delta,
             Mathf.Tau
         );
+        Position = Vector2.Zero;
+        Rotation = 0.0f;
 
-        Position = Vector2.FromAngle(_orbitAngle) *
-            Mathf.Max(eraserRotateRadius, 0.0f);
+        int eraserCount = _orbitErasers.Count;
 
-        if (!eraserSelfRotationEnabled)
+        if(eraserCount == 0)
             return;
-        
-        Rotation = _orbitAngle + Mathf.DegToRad(eraserSelfRotationOffsetDegrees);
+
+        float orbitRadius = Mathf.Max(eraserRotateRadius, 0.0f);
+        float angleStep = Mathf.Tau / eraserCount;
+        float rotationOffset = Mathf.DegToRad(
+            eraserSelfRotationOffsetDegrees
+        );
+
+        for(int index = 0; index < eraserCount; index++)
+        {
+            Node2D eraser = _orbitErasers[index];
+
+            if(!GodotObject.IsInstanceValid(eraser))
+                continue;
+
+            float angle = _orbitAngle + angleStep * index;
+            eraser.Position = Vector2.FromAngle(angle) * orbitRadius;
+            eraser.Rotation = eraserSelfRotationEnabled
+                ? angle + rotationOffset
+                : 0.0f;
+        }
+    }
+
+    private void ResolveOrbitErasers()
+    {
+        OrbitEraser1 ??= GetNodeOrNull<Node2D>("Visual1");
+        OrbitEraser2 ??= GetNodeOrNull<Node2D>("Visual2");
+        OrbitEraser3 ??= GetNodeOrNull<Node2D>("Visual3");
+
+        _orbitErasers.Clear();
+        AddOrbitEraser(OrbitEraser1);
+        AddOrbitEraser(OrbitEraser2);
+        AddOrbitEraser(OrbitEraser3);
+
+        if(_orbitErasers.Count == 3)
+            return;
+
+        GD.PushWarning(
+            $"{Name} 需要绑定三块轨道橡皮，当前有效数量：{_orbitErasers.Count}。"
+        );
+    }
+
+    private void AddOrbitEraser(Node2D eraser)
+    {
+        if(
+            GodotObject.IsInstanceValid(eraser) &&
+            !_orbitErasers.Contains(eraser)
+        )
+        {
+            _orbitErasers.Add(eraser);
+        }
+    }
+
+    private void ResetOrbitTracking()
+    {
+        for(int index = 0; index < _hasPreviousOrbitPositions.Length; index++)
+            _hasPreviousOrbitPositions[index] = false;
     }
 
     private void BeginMiniEraser()
@@ -255,12 +333,14 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
             MiniEraserRadius,
             SkillEraseLevel
         );
-        DamageEnemiesAlongSegment(
+        AffectEnemiesAlongSegment(
             from,
             globalPoint,
             MiniEraserRadius,
             MiniEraserDamage,
             MiniEraserDamageInterval,
+            true,
+            _miniHitTimes,
             _miniHitTimes
         );
 
@@ -275,13 +355,15 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
             : GlobalPosition;
     }
 
-    private void DamageEnemiesAlongSegment(
+    private void AffectEnemiesAlongSegment(
         Vector2 from,
         Vector2 to,
         float radius,
         float damage,
         float damageInterval,
-        Dictionary<ulong, ulong> hitTimes
+        bool canDealDamage,
+        Dictionary<ulong, ulong> damageHitTimes,
+        Dictionary<ulong, ulong> repelHitTimes
     )
     {
         float safeRadius = Mathf.Max(radius, 0.0f);
@@ -317,15 +399,25 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
             }
 
             ulong enemyId = enemy.GetInstanceId();
-            if (
-                hitTimes.TryGetValue(enemyId, out ulong lastHitTime) &&
-                now - lastHitTime < intervalMilliseconds
-            )
-            {
-                continue;
-            }
+            bool shouldDamage =
+                canDealDamage &&
+                CanApplyAtInterval(
+                    damageHitTimes,
+                    enemyId,
+                    now,
+                    intervalMilliseconds
+                );
+            bool shouldRepel =
+                enemy is EnemyBase &&
+                CanApplyAtInterval(
+                    repelHitTimes,
+                    enemyId,
+                    now,
+                    intervalMilliseconds
+                );
 
-            hitTimes[enemyId] = now;
+            if(!shouldDamage && !shouldRepel)
+                continue;
 
             Vector2 hitDirection = closestPoint.DirectionTo(
                 enemy.GlobalPosition
@@ -339,16 +431,35 @@ public partial class EraserWeapon : WeaponBase, IPaintStrokeRuntime
             if (hitDirection.IsZeroApprox())
                 hitDirection = Vector2.Right;
 
-            damageable.TakeDamage(
-                Mathf.Max(damage, 0.0f),
-                this,
-                closestPoint,
-                hitDirection
-            );
+            if(shouldDamage)
+            {
+                damageHitTimes[enemyId] = now;
+                damageable.TakeDamage(
+                    Mathf.Max(damage, 0.0f),
+                    this,
+                    closestPoint,
+                    hitDirection
+                );
+            }
 
-            if (enemy is EnemyBase enemyBase)
+            if(shouldRepel && enemy is EnemyBase enemyBase)
+            {
+                repelHitTimes[enemyId] = now;
                 RepelEnemy(enemyBase, hitDirection);
+            }
         }
+    }
+
+    private static bool CanApplyAtInterval(
+        Dictionary<ulong, ulong> hitTimes,
+        ulong enemyId,
+        ulong now,
+        ulong intervalMilliseconds
+    )
+    {
+        return
+            !hitTimes.TryGetValue(enemyId, out ulong lastHitTime) ||
+            now - lastHitTime >= intervalMilliseconds;
     }
 
     private void RepelEnemy(EnemyBase enemy, Vector2 direction)

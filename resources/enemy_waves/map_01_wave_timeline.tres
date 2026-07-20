@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://raunanrcb77v" path="res://assets/enemy/001_The_Ink_Blob_Ani.png" id="4_b406n"]
 [ext_resource type="Script" uid="uid://btmf36urq52hy" path="res://scripts/enemy/spawning/EnemySpawnEntry.cs" id="4_entry"]
 [ext_resource type="PackedScene" uid="uid://uhi45munt7ht" path="res://scenes/enemies/the_crispy_paged_doll.tscn" id="5_xvw3y"]
+[ext_resource type="PackedScene" uid="uid://cqepg4x7scty3" path="res://scenes/enemies/the_mold_spot_fungus.tscn" id="8_b406n"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0"]
 atlas = ExtResource("4_b406n")
@@ -103,7 +104,7 @@ metadata/_custom_type_script = "uid://btmf36urq52hy"
 [sub_resource type="Resource" id="EnemyWaveData_large"]
 script = ExtResource("3_wave")
 EventName = "失控怪潮"
-SpawnInterval = 1.8
+SpawnInterval = 2.1999999999999997
 EnemyQueue = Array[ExtResource("4_entry")]([SubResource("EnemySpawnEntry_large"), SubResource("Resource_lk8br")])
 
 [sub_resource type="Resource" id="EnemyWaveEvent_large"]
@@ -115,23 +116,30 @@ Wave = SubResource("EnemyWaveData_large")
 [sub_resource type="Resource" id="EnemySpawnEntry_elite"]
 script = ExtResource("4_entry")
 EnemyScene = ExtResource("3_7hom7")
-Weight = 1.5
+Weight = 1.2
 
 [sub_resource type="Resource" id="Resource_mvaey"]
 script = ExtResource("4_entry")
 EnemyScene = ExtResource("5_xvw3y")
+Weight = 0.6
+metadata/_custom_type_script = "uid://btmf36urq52hy"
+
+[sub_resource type="Resource" id="Resource_ccmn2"]
+script = ExtResource("4_entry")
+EnemyScene = ExtResource("8_b406n")
+Weight = 1.5
 metadata/_custom_type_script = "uid://btmf36urq52hy"
 
 [sub_resource type="Resource" id="EnemyWaveData_elite"]
 script = ExtResource("3_wave")
-EventName = "脆页偶大军"
-SpawnInterval = 1.6
-EnemyQueue = Array[ExtResource("4_entry")]([SubResource("EnemySpawnEntry_elite"), SubResource("Resource_mvaey")])
+EventName = "怪潮大军"
+SpawnInterval = 1.8
+EnemyQueue = Array[ExtResource("4_entry")]([SubResource("EnemySpawnEntry_elite"), SubResource("Resource_mvaey"), SubResource("Resource_ccmn2")])
 
 [sub_resource type="Resource" id="EnemyWaveEvent_elite"]
 script = ExtResource("2_event")
 EventType = 2
-ProgressPercent = 80.0
+ProgressPercent = 65.0
 Wave = SubResource("EnemyWaveData_elite")
 
 [resource]

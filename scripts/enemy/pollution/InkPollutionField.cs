@@ -178,6 +178,42 @@ public partial class InkPollutionField : Node2D
     }
 
     /// <summary>
+    /// 查询指定世界坐标附近是否至少存在一个污染瓦片。
+    /// 供依赖污染环境的敌人使用，不暴露污染字典本身。
+    /// </summary>
+    public bool HasPollutionNear(Vector2 globalPosition, float radius)
+    {
+        if (
+            !GodotObject.IsInstanceValid(_groundLayer) ||
+            _pollutedCells.Count == 0
+        )
+        {
+            return false;
+        }
+
+        Vector2 localPosition = _groundLayer.ToLocal(globalPosition);
+        Vector2 tileSize = GetTileSize();
+        float expandedRadius = Mathf.Max(radius, 0.0f) +
+            tileSize.Length() * 0.5f;
+        float radiusSquared = expandedRadius * expandedRadius;
+
+        foreach (Vector2I cell in _pollutedCells.Keys)
+        {
+            Vector2 cellCenter = _groundLayer.MapToLocal(cell);
+
+            if (
+                localPosition.DistanceSquaredTo(cellCenter) <=
+                radiusSquared
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// 擦除线段轨迹覆盖的污染格。只有擦除等级不低于污染等级时才会生效。
     /// </summary>
     public int EraseAlongSegment(

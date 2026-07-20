@@ -26,16 +26,101 @@ public partial class FloatingDamageNumber : Label
             return;
         }
 
+        SpawnText(
+            target,
+            $"-{FormatDamage(damage)}",
+            color,
+            offset,
+            riseDistance,
+            duration,
+            fontSize,
+            new Vector2(80.0f, 28.0f)
+        );
+    }
+
+    public static void SpawnHealing(
+        Node2D target,
+        float amount,
+        Color color,
+        Vector2 offset,
+        float riseDistance,
+        float duration,
+        int fontSize
+    )
+    {
+        if (
+            !GodotObject.IsInstanceValid(target) ||
+            !target.IsInsideTree() ||
+            amount <= 0.0f
+        )
+        {
+            return;
+        }
+
+        SpawnText(
+            target,
+            $"+{FormatDamage(amount)}",
+            color,
+            offset,
+            riseDistance,
+            duration,
+            fontSize,
+            new Vector2(80.0f, 28.0f)
+        );
+    }
+
+    public static void SpawnMessage(
+        Node2D target,
+        string message,
+        Color color,
+        Vector2 offset,
+        float riseDistance,
+        float duration,
+        int fontSize
+    )
+    {
+        if(
+            !GodotObject.IsInstanceValid(target) ||
+            !target.IsInsideTree() ||
+            string.IsNullOrWhiteSpace(message)
+        )
+        {
+            return;
+        }
+
+        SpawnText(
+            target,
+            message,
+            color,
+            offset,
+            riseDistance,
+            duration,
+            fontSize,
+            new Vector2(320.0f, 34.0f)
+        );
+    }
+
+    private static void SpawnText(
+        Node2D target,
+        string text,
+        Color color,
+        Vector2 offset,
+        float riseDistance,
+        float duration,
+        int fontSize,
+        Vector2 labelSize
+    )
+    {
+
         Node parent = target.GetTree().CurrentScene ?? target.GetParent();
 
         if (parent == null)
             return;
 
         float safeDuration = Mathf.Max(duration, 0.05f);
-        Vector2 labelSize = new(80.0f, 28.0f);
         FloatingDamageNumber label = new()
         {
-            Text = $"-{FormatDamage(damage)}",
+            Text = text,
             Size = labelSize,
             CustomMinimumSize = labelSize,
             HorizontalAlignment = HorizontalAlignment.Center,

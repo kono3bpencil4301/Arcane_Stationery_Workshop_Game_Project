@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/tests/DungeonRuntimeSmokeTest.cs" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/map_01.tscn" id="2_map"]
+
+[node name="DungeonRuntimeSmokeTest" type="Node"]
+script = ExtResource("1_test")
+MapScene = ExtResource("2_map")

@@ -14,7 +14,19 @@ metadata/_custom_type_script = "uid://6m5po2yk6h74"
 script = ExtResource("1_script")
 eraserRotateSpeed = 240.0
 eraserRotateRadius = 90.0
+MiniEraserDamage = 25.0
+MiniEraserMaxRange = 440.0
+MiniEraserDamageInterval = 0.15000000000000002
 PaintBrushData = SubResource("Resource_eraser_brush")
 
-[node name="Visual" type="Sprite2D" parent="." unique_id=1793309820]
+[node name="Visual1" type="Sprite2D" parent="." unique_id=1793309820]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_texture")
+
+[node name="Visual2" type="Sprite2D" parent="." unique_id=1732949786]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_texture")
+
+[node name="Visual3" type="Sprite2D" parent="." unique_id=1565867579]
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_texture")

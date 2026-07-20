@@ -38,7 +38,10 @@ public partial class WaveTimerView : PanelContainer
         if (_timeLabel == null)
             return;
 
-        if (_spawner?.Timeline == null)
+        if (
+            _spawner?.Timeline == null ||
+            !_spawner.EncounterActive
+        )
         {
             _timeLabel.Text = "--:--";
             return;
@@ -46,7 +49,7 @@ public partial class WaveTimerView : PanelContainer
 
         int totalSeconds = Mathf.Max(
             0,
-            Mathf.FloorToInt(_spawner.ElapsedSeconds)
+            Mathf.CeilToInt(_spawner.RemainingSeconds)
         );
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;

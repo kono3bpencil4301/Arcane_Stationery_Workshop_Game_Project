@@ -12,6 +12,9 @@
 [ext_resource type="Script" uid="uid://lda1614h2tog" path="res://scripts/inventory/EquipmentModel.cs" id="10_equipment"]
 [ext_resource type="Script" uid="uid://cdvg7pyk3qolm" path="res://scripts/run/RunHudState.cs" id="11_run_hud"]
 [ext_resource type="Script" uid="uid://vphjy1d8jvg8" path="res://scripts/run/WeaponDiscoveryProgress.cs" id="12_discovery"]
+[ext_resource type="Script" path="res://scripts/items/consumables/ConsumableUseController.cs" id="13_consumable"]
+[ext_resource type="Texture2D" path="res://assets/ui/CircularProgressIndicator/Ring_Back.png" id="14_ring_back"]
+[ext_resource type="Texture2D" path="res://assets/ui/CircularProgressIndicator/Ring_Fill.png" id="15_ring_fill"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_d60a3"]
 atlas = ExtResource("1_dp0ka")
@@ -395,6 +398,11 @@ script = ExtResource("9_inventory")
 
 [node name="Equipment" type="Node" parent="." unique_id=142600309]
 script = ExtResource("10_equipment")
+
+[node name="ConsumableUseController" type="Node2D" parent="."]
+script = ExtResource("13_consumable")
+RingBackTexture = ExtResource("14_ring_back")
+RingFillTexture = ExtResource("15_ring_fill")
 
 [node name="RunHudState" type="Node" parent="." unique_id=1364949959]
 script = ExtResource("11_run_hud")

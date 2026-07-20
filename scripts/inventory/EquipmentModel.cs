@@ -67,6 +67,31 @@ public partial class EquipmentModel : Node
         return true;
     }
 
+    public bool TryConsumeFromSlot(int slotIndex, int quantity = 1)
+    {
+        if(!IsValidSlot(slotIndex) || quantity <= 0)
+            return false;
+
+        InventoryEntry entry = _slots[slotIndex];
+
+        if(
+            entry?.Data == null ||
+            entry.Data.Category != InventoryItemCategory.Consumable ||
+            entry.Quantity < quantity
+        )
+        {
+            return false;
+        }
+
+        entry.Quantity -= quantity;
+
+        if(entry.Quantity <= 0)
+            _slots[slotIndex] = null;
+
+        EmitSignal(SignalName.EquipmentChanged, slotIndex);
+        return true;
+    }
+
     private bool IsValidSlot(int slotIndex)
     {
         return _slots != null && slotIndex >= 0 && slotIndex < _slots.Length;

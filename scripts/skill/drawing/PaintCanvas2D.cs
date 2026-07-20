@@ -46,6 +46,28 @@ public partial class PaintCanvas2D : Sprite2D
     public Vector2I CanvasSize =>
         new(_canvasWidth, _canvasHeight);
 
+    /// <summary>
+    /// 根据当前房间的可绘制区域更新画布尺寸与世界坐标左上角。
+    /// 如果画布已经创建，则立即清空并按新尺寸重建。
+    /// </summary>
+    public void ConfigureCanvas(
+        Vector2I canvasSize,
+        Vector2 globalTopLeft
+    )
+    {
+        _canvasWidth = Mathf.Max(canvasSize.X, 1);
+        _canvasHeight = Mathf.Max(canvasSize.Y, 1);
+        GlobalPosition = globalTopLeft;
+
+        if (_canvasImage == null)
+            return;
+
+        _fadingPixels.Clear();
+        _fadePixelKeys.Clear();
+        _textureDirty = false;
+        CreateCanvas();
+    }
+
     public override void _Ready()
     {
         Centered = false;

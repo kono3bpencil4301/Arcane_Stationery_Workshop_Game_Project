@@ -3,6 +3,8 @@ using System;
 
 public partial class InventoryItemView : Button
 {
+    private Label _quantityLabel;
+
     public InventoryEntry Entry { get; private set; }
     public Vector2I CellPosition { get; set; }
 
@@ -18,6 +20,7 @@ public partial class InventoryItemView : Button
         ExpandIcon = true;
         AddThemeConstantOverride("icon_max_width", 30);
         UiPalette.StyleButton(this, 10);
+        CreateQuantityLabel();
         Pressed += () =>
         {
             if (Entry != null)
@@ -33,6 +36,7 @@ public partial class InventoryItemView : Button
         {
             Text = "";
             Icon = null;
+            SetQuantityLabel(0, false);
             Disabled = false;
             TooltipText = "空格";
             return;
@@ -42,6 +46,7 @@ public partial class InventoryItemView : Button
         {
             Text = "·";
             Icon = null;
+            SetQuantityLabel(0, false);
             Disabled = true;
             TooltipText = entry.Data.DisplayName;
             return;
@@ -51,10 +56,48 @@ public partial class InventoryItemView : Button
         Icon = entry.Data.Icon;
         Text = entry.Data.Icon == null
             ? entry.Data.DisplayName
-            : entry.Quantity > 1
-                ? entry.Quantity.ToString()
-                : "";
-        TooltipText = $"{entry.Data.DisplayName}\n重量 {entry.TotalWeight:0.0}";
+            : "";
+        SetQuantityLabel(entry.Quantity, true);
+        TooltipText =
+            $"{entry.Data.DisplayName}\n重量 {entry.TotalWeight:0.0} kg";
+    }
+
+    private void CreateQuantityLabel()
+    {
+        _quantityLabel = new Label
+        {
+            Name = "QuantityLabel",
+            MouseFilter = MouseFilterEnum.Ignore,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            AnchorLeft = 1.0f,
+            AnchorTop = 1.0f,
+            AnchorRight = 1.0f,
+            AnchorBottom = 1.0f,
+            OffsetLeft = -27.0f,
+            OffsetTop = -21.0f,
+            OffsetRight = -3.0f,
+            OffsetBottom = -2.0f,
+            ZIndex = 20
+        };
+        UiPalette.StyleLabel(_quantityLabel, 11);
+        _quantityLabel.AddThemeColorOverride(
+            "font_outline_color",
+            Colors.Black
+        );
+        _quantityLabel.AddThemeConstantOverride("outline_size", 3);
+        AddChild(_quantityLabel);
+    }
+
+    private void SetQuantityLabel(int quantity, bool visible)
+    {
+        if (_quantityLabel == null)
+            return;
+
+        _quantityLabel.Text = visible
+            ? Mathf.Max(quantity, 0).ToString()
+            : "";
+        _quantityLabel.Visible = visible;
     }
 
     public override Variant _GetDragData(Vector2 atPosition)
