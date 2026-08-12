@@ -54,6 +54,18 @@ public partial class DungeonRuntimeSmokeTest : Node
             player?.GetNodeOrNull<ConsumableUseController>(
                 "ConsumableUseController"
             );
+        InkCoinWallet inkCoinWallet =
+            player?.GetNodeOrNull<InkCoinWallet>("InkCoinWallet");
+        InkCoinCounterView hudInkCoinCounter = map.FindChild(
+            "HudInkCoinCounter",
+            true,
+            false
+        ) as InkCoinCounterView;
+        InkCoinCounterView inventoryInkCoinCounter = map.FindChild(
+            "InventoryInkCoinCounter",
+            true,
+            false
+        ) as InkCoinCounterView;
         RoomNameView roomNameView = map.FindChild(
             "RoomNameView",
             true,
@@ -85,6 +97,9 @@ public partial class DungeonRuntimeSmokeTest : Node
             inventory == null ||
             equipment == null ||
             consumableUse == null ||
+            inkCoinWallet == null ||
+            hudInkCoinCounter == null ||
+            inventoryInkCoinCounter == null ||
             roomNameView == null ||
             roomExplorationProgress == null ||
             roomExplorationOutline?.Material is not ShaderMaterial ||
@@ -94,6 +109,9 @@ public partial class DungeonRuntimeSmokeTest : Node
             Fail("地图运行依赖没有完成初始化。");
             return;
         }
+
+        if(!ValidateEnemyHealthBar(map))
+            return;
 
         if(
             playerSpawnLayer.ZIndex > player.ZIndex ||
@@ -438,6 +456,18 @@ public partial class DungeonRuntimeSmokeTest : Node
             return;
         }
 
+        if(
+            schoolBag.RewardRoomId != combatRoom.Id ||
+            schoolBag.RewardDifficulty != combatRoom.EncounterDifficulty
+        )
+        {
+            Fail("书包没有继承已清扫房间的难度奖励配置。");
+            return;
+        }
+
+        Vector2I inkCoinRewardRange = schoolBag.GetInkCoinRewardRange();
+        int balanceBeforeSearch = inkCoinWallet.Balance;
+
         foreach(InventoryItemData material in schoolBag.MaterialItems)
         {
             if(
@@ -451,9 +481,89 @@ public partial class DungeonRuntimeSmokeTest : Node
             }
         }
 
-        if(!schoolBag.Search(player))
+        if(!schoolBag.StartSearch(player))
         {
-            Fail("搜索书包没有获得物资。");
+            Fail("搜索书包没有进入读条状态。");
+            return;
+        }
+
+        TextureProgressBar searchProgress = schoolBag.FindChild(
+            "SearchProgressRing",
+            true,
+            false
+        ) as TextureProgressBar;
+
+        await ToSignal(
+            GetTree().CreateTimer(0.75),
+            SceneTreeTimer.SignalName.Timeout
+        );
+
+        Vector2 searchProgressCenter =
+            searchProgress?.GlobalPosition ?? Vector2.Zero;
+
+        if(searchProgress != null)
+        {
+            searchProgressCenter += searchProgress.Size * 0.5f;
+        }
+
+        if(
+            searchProgress == null ||
+            !searchProgress.Visible ||
+            searchProgress.Value <= 0.0 ||
+            searchProgress.Value >= 100.0 ||
+            searchProgress.FillMode !=
+                (int)TextureProgressBar.FillModeEnum.Clockwise ||
+            !Mathf.IsEqualApprox(
+                searchProgress.RadialFillDegrees,
+                360.0f
+            ) ||
+            !searchProgressCenter.IsEqualApprox(
+                schoolBag.GlobalPosition
+            ) ||
+            schoolBag.Searched
+        )
+        {
+            Fail("书包搜索没有在搜索点中心显示同款顺时针进度环。");
+            return;
+        }
+
+        await ToSignal(
+            GetTree().CreateTimer(0.9),
+            SceneTreeTimer.SignalName.Timeout
+        );
+
+        if(
+            !schoolBag.Searched ||
+            searchProgress.Visible ||
+            searchProgress.Value < 100.0
+        )
+        {
+            Fail("书包搜索没有在1.5秒读条结束后完成。");
+            return;
+        }
+
+        int awardedInkCoins = inkCoinWallet.Balance - balanceBeforeSearch;
+
+        if(
+            awardedInkCoins < inkCoinRewardRange.X ||
+            awardedInkCoins > inkCoinRewardRange.Y
+        )
+        {
+            Fail(
+                "书包没有按房间难度发放范围内的灵墨币：" +
+                $"reward={awardedInkCoins}, range={inkCoinRewardRange}。"
+            );
+            return;
+        }
+
+        string expectedBalanceText = inkCoinWallet.Balance.ToString();
+
+        if(
+            hudInkCoinCounter.DisplayedBalanceText != expectedBalanceText ||
+            inventoryInkCoinCounter.DisplayedBalanceText != expectedBalanceText
+        )
+        {
+            Fail("HUD 或 Tab 背包没有同步显示灵墨币余额。");
             return;
         }
 
@@ -790,6 +900,58 @@ public partial class DungeonRuntimeSmokeTest : Node
 
         GD.Print("[DungeonRuntimeSmokeTest] PASS");
         GetTree().Quit(0);
+    }
+
+    private bool ValidateEnemyHealthBar(Node parent)
+    {
+        EnemyHealthBar healthBar = new()
+        {
+            Name = "EnemyHealthBarSmokeProbe"
+        };
+        parent.AddChild(healthBar);
+        healthBar.Configure(32.0f, 4.0f);
+
+        healthBar.SetHealth(70.0f, 100.0f);
+        Rect2 greenFill = healthBar.FillRect;
+        bool greenAtSeventy =
+            healthBar.FillColor == EnemyHealthBar.HighHealthColor;
+
+        healthBar.SetHealth(30.0f, 100.0f);
+        Rect2 yellowFill = healthBar.FillRect;
+        bool yellowAtThirty =
+            healthBar.FillColor == EnemyHealthBar.MediumHealthColor;
+
+        healthBar.SetHealth(20.0f, 100.0f);
+        Rect2 redFill = healthBar.FillRect;
+        bool redBelowThirty =
+            healthBar.FillColor == EnemyHealthBar.LowHealthColor;
+
+        bool leftEdgeAnchored =
+            Mathf.IsEqualApprox(greenFill.Position.X, yellowFill.Position.X) &&
+            Mathf.IsEqualApprox(yellowFill.Position.X, redFill.Position.X);
+        bool rightEdgeRetractsLeft =
+            greenFill.End.X > yellowFill.End.X &&
+            yellowFill.End.X > redFill.End.X;
+        bool fourPixelsThick = Mathf.IsEqualApprox(
+            healthBar.BarThickness,
+            4.0f
+        );
+        healthBar.Free();
+
+        if(
+            greenAtSeventy &&
+            yellowAtThirty &&
+            redBelowThirty &&
+            leftEdgeAnchored &&
+            rightEdgeRetractsLeft &&
+            fourPixelsThick
+        )
+        {
+            return true;
+        }
+
+        Fail("敌人血条的颜色分段、4像素厚度或右端向左扣减不正确。");
+        return false;
     }
 
     private void Fail(string message)

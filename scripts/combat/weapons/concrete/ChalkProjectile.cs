@@ -156,11 +156,10 @@ public partial class ChalkProjectile : CharacterBody2D
 	/// </summary>
 	public void Setup(Vector2 direction, Node source)
 	{
-		if (direction.IsZeroApprox())
+		if(direction.IsZeroApprox())
 		{
 			direction = Vector2.Right;
 		}
-
 		_direction = direction.Normalized();
 		_source = source;
 

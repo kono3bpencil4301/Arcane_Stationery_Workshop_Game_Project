@@ -24,6 +24,7 @@ public partial class WeaponSlotView : PanelContainer
     {
         CustomMinimumSize = new Vector2(58, 58);
         MouseDefaultCursorShape = CursorShape.PointingHand;
+        UiPalette.BindIconControlAudio(this);
         AddThemeStyleboxOverride(
             "panel",
             UiPalette.MakePanel(UiPalette.Panel, UiPalette.ArchiveBlue, 1)

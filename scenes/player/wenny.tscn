@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/items/consumables/ConsumableUseController.cs" id="13_consumable"]
 [ext_resource type="Texture2D" path="res://assets/ui/CircularProgressIndicator/Ring_Back.png" id="14_ring_back"]
 [ext_resource type="Texture2D" path="res://assets/ui/CircularProgressIndicator/Ring_Fill.png" id="15_ring_fill"]
+[ext_resource type="Script" path="res://scripts/run/InkCoinWallet.cs" id="16_ink_coin_wallet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_d60a3"]
 atlas = ExtResource("1_dp0ka")
@@ -406,6 +407,9 @@ RingFillTexture = ExtResource("15_ring_fill")
 
 [node name="RunHudState" type="Node" parent="." unique_id=1364949959]
 script = ExtResource("11_run_hud")
+
+[node name="InkCoinWallet" type="Node" parent="."]
+script = ExtResource("16_ink_coin_wallet")
 
 [node name="WeaponDiscoveryProgress" type="Node" parent="." unique_id=2143762615]
 script = ExtResource("12_discovery")

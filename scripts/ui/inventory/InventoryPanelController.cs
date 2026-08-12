@@ -6,6 +6,7 @@ public partial class InventoryPanelController : Control
     private InventoryModel _inventory;
     private EquipmentModel _equipment;
     private WeaponManager _weapons;
+    private InkCoinWallet _inkCoinWallet;
     private GridContainer _grid;
     private Label _weightLabel;
     private Label _detailName;
@@ -20,12 +21,14 @@ public partial class InventoryPanelController : Control
     public void Bind(
         InventoryModel inventory,
         EquipmentModel equipment,
-        WeaponManager weapons
+        WeaponManager weapons,
+        InkCoinWallet inkCoinWallet
     )
     {
         _inventory = inventory;
         _equipment = equipment;
         _weapons = weapons;
+        _inkCoinWallet = inkCoinWallet;
     }
 
     public override void _Ready()
@@ -75,6 +78,13 @@ public partial class InventoryPanelController : Control
         };
         UiPalette.StyleLabel(title, 16);
         header.AddChild(title);
+
+        InkCoinCounterView inkCoinCounter = new()
+        {
+            Name = "InventoryInkCoinCounter"
+        };
+        inkCoinCounter.Bind(_inkCoinWallet);
+        header.AddChild(inkCoinCounter);
 
         _weightLabel = new Label
         {

@@ -92,6 +92,20 @@ public partial class DungeonGenerator : Node
     [Export]
     public PackedScene SchoolBagSearchPointScene { get; set; }
 
+    [ExportCategory("Monster Room Fence")]
+
+    [Export(PropertyHint.Range, "0,1,0.05")]
+    public float HorizontalFenceChance { get; set; } = 0.4f;
+
+    [Export(PropertyHint.Range, "3,12,1")]
+    public int MinimumHorizontalFenceLength { get; set; } = 3;
+
+    [Export(PropertyHint.Range, "3,12,1")]
+    public int MaximumHorizontalFenceLength { get; set; } = 7;
+
+    [Export(PropertyHint.Range, "1,5,1")]
+    public int HorizontalFenceWallClearance { get; set; } = 2;
+
     public DungeonLayout GeneratedLayout { get; private set; }
 
     public int UnlockedRoomCount => _unlockedRoomIds.Count;
@@ -120,8 +134,16 @@ public partial class DungeonGenerator : Node
 
     public void GenerateDungeon()
     {
-        if(!ResolveSceneNodes())
+        if (!ResolveSceneNodes())
             return;
+
+
+        ConfigureRandomSeed();
+        DungeonGenerationConfig config;
+        if (GenerationConfig != null)
+            config = GenerationConfig;
+        else
+            config = new DungeonGenerationConfig();
 
         DungeonTilePainter painter = new(
             _groundLayer,
@@ -129,22 +151,21 @@ public partial class DungeonGenerator : Node
             _playerSpawnLayer,
             _doorBlockerLayer,
             _doorIconLayer,
-            RecordingFloorSourceId
+            RecordingFloorSourceId,
+            GenerationConfig,
+            _random
         );
 
-        if(!painter.ValidateRequiredAtlasTiles() || !ValidateOverlayTiles())
+        if (!painter.ValidateRequiredAtlasTiles() || !ValidateOverlayTiles())
             return;
 
-        ConfigureRandomSeed();
-        DungeonGenerationConfig config =
-            GenerationConfig ?? new DungeonGenerationConfig();
         DungeonLayoutGenerator layoutGenerator = new(config, _random);
         string validationError = string.Empty;
         GeneratedLayout = null;
         _schoolBagRoomIds.Clear();
         _unlockedRoomIds.Clear();
 
-        for(
+        for (
             int attempt = 1;
             attempt <= Math.Max(config.MaximumGenerationAttempts, 1);
             attempt++
@@ -154,7 +175,7 @@ public partial class DungeonGenerator : Node
             {
                 DungeonLayout candidate = layoutGenerator.Generate();
 
-                if(
+                if (
                     DungeonLayoutValidator.Validate(
                         candidate,
                         config,
@@ -166,7 +187,7 @@ public partial class DungeonGenerator : Node
                     break;
                 }
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 validationError = exception.Message;
             }
@@ -176,7 +197,7 @@ public partial class DungeonGenerator : Node
             );
         }
 
-        if(GeneratedLayout == null)
+        if (GeneratedLayout == null)
         {
             GD.PushError(
                 $"程序化地牢生成失败: {validationError}"
@@ -195,13 +216,13 @@ public partial class DungeonGenerator : Node
         int normalRoomCount = 0;
         int extractionRoomId = -1;
 
-        foreach(DungeonRoomData room in GeneratedLayout.Rooms)
+        foreach (DungeonRoomData room in GeneratedLayout.Rooms)
         {
-            if(room.Type == DungeonRoomType.Monster)
+            if (room.Type == DungeonRoomType.Monster)
                 monsterRoomCount++;
-            else if(room.Type == DungeonRoomType.Normal)
+            else if (room.Type == DungeonRoomType.Normal)
                 normalRoomCount++;
-            else if(room.Type == DungeonRoomType.Extraction)
+            else if (room.Type == DungeonRoomType.Extraction)
                 extractionRoomId = room.Id;
         }
 
@@ -243,7 +264,7 @@ public partial class DungeonGenerator : Node
     {
         room = null;
 
-        if(
+        if (
             GeneratedLayout == null ||
             !GodotObject.IsInstanceValid(_groundLayer)
         )
@@ -254,9 +275,9 @@ public partial class DungeonGenerator : Node
         Vector2 localPosition = _groundLayer.ToLocal(globalPosition);
         Vector2I cell = _groundLayer.LocalToMap(localPosition);
 
-        foreach(DungeonRoomData candidate in GeneratedLayout.Rooms)
+        foreach (DungeonRoomData candidate in GeneratedLayout.Rooms)
         {
-            if(!candidate.ContainsCell(cell))
+            if (!candidate.ContainsCell(cell))
                 continue;
 
             room = candidate;
@@ -268,7 +289,7 @@ public partial class DungeonGenerator : Node
 
     public void ConfigurePaintCanvasForRoom(DungeonRoomData room)
     {
-        if(
+        if (
             room == null ||
             !GodotObject.IsInstanceValid(_groundLayer) ||
             !GodotObject.IsInstanceValid(_paintCanvas)
@@ -297,12 +318,12 @@ public partial class DungeonGenerator : Node
 
     public void NotifyPlayerEnteredRoom(DungeonRoomData room)
     {
-        if(room == null)
+        if (room == null)
             return;
 
         _playerRoomId = room.Id;
 
-        if(!room.Type.IsCombatRoom())
+        if (!room.Type.IsCombatRoom())
             UnlockRoomForExploration(room);
 
         EmitSignal(
@@ -315,7 +336,7 @@ public partial class DungeonGenerator : Node
 
     public void NotifyPlayerExitedRoom(DungeonRoomData room)
     {
-        if(room == null || _playerRoomId != room.Id)
+        if (room == null || _playerRoomId != room.Id)
             return;
 
         _playerRoomId = -1;
@@ -337,7 +358,7 @@ public partial class DungeonGenerator : Node
         _player = GetNodeOrNull<Node2D>(PlayerPath);
         _paintCanvas = GetNodeOrNull<PaintCanvas2D>(PaintCanvasPath);
 
-        if(
+        if (
             _groundLayer != null &&
             _enemySpawner != null &&
             _playerSpawnLayer != null &&
@@ -362,7 +383,7 @@ public partial class DungeonGenerator : Node
     {
         TileSet tileSet = _groundLayer.TileSet;
 
-        if(
+        if (
             tileSet == null ||
             !tileSet.HasSource(OverlaySourceId) ||
             tileSet.GetSource(OverlaySourceId)
@@ -375,11 +396,11 @@ public partial class DungeonGenerator : Node
             return false;
         }
 
-        for(int y = 0; y <= 4; y++)
+        for (int y = 0; y <= 4; y++)
         {
             Vector2I tile = new(0, y);
 
-            if(atlasSource.HasTile(tile))
+            if (atlasSource.HasTile(tile))
                 continue;
 
             GD.PushError($"01_tile_overlay_layer 缺少瓦片 {tile}。");
@@ -391,7 +412,7 @@ public partial class DungeonGenerator : Node
 
     private void ConfigureRandomSeed()
     {
-        if(FixedSeed == 0)
+        if (FixedSeed == 0)
         {
             _random.Randomize();
             return;
@@ -404,7 +425,7 @@ public partial class DungeonGenerator : Node
     {
         DungeonRoomData startRoom = GeneratedLayout.StartRoom;
 
-        if(startRoom == null)
+        if (startRoom == null)
             return;
 
         _player.GlobalPosition = _groundLayer.ToGlobal(
@@ -415,7 +436,7 @@ public partial class DungeonGenerator : Node
 
     private void BuildRuntimeControllers()
     {
-        foreach(Node child in _runtime.GetChildren())
+        foreach (Node child in _runtime.GetChildren())
             child.QueueFree();
 
         DungeonEncounterController encounterController = new()
@@ -428,12 +449,12 @@ public partial class DungeonGenerator : Node
 
         Dictionary<int, List<DungeonDoorController>> doorsByRoom = new();
 
-        foreach(DungeonRoomData room in GeneratedLayout.Rooms)
+        foreach (DungeonRoomData room in GeneratedLayout.Rooms)
             doorsByRoom[room.Id] = new List<DungeonDoorController>();
 
-        foreach(DungeonRoomData room in GeneratedLayout.Rooms)
+        foreach (DungeonRoomData room in GeneratedLayout.Rooms)
         {
-            foreach(DungeonDoorData door in room.Doors)
+            foreach (DungeonDoorData door in room.Doors)
             {
                 DungeonDoorController controller = new();
                 _runtime.AddChild(controller);
@@ -447,7 +468,7 @@ public partial class DungeonGenerator : Node
             }
         }
 
-        foreach(DungeonRoomData room in GeneratedLayout.Rooms)
+        foreach (DungeonRoomData room in GeneratedLayout.Rooms)
         {
             DungeonRoomController controller = new();
             _runtime.AddChild(controller);
@@ -465,7 +486,7 @@ public partial class DungeonGenerator : Node
     {
         DungeonRoomData startRoom = GeneratedLayout.StartRoom;
 
-        if(startRoom == null)
+        if (startRoom == null)
             return;
 
         PackedScene[] scenes =
@@ -482,7 +503,7 @@ public partial class DungeonGenerator : Node
         };
         int[] horizontalOffsets = { -1, 0, 1 };
 
-        for(int index = 0; index < scenes.Length; index++)
+        for (int index = 0; index < scenes.Length; index++)
         {
             Vector2I dropCell = startRoom.CenterCell +
                 new Vector2I(horizontalOffsets[index], 1);
@@ -498,13 +519,13 @@ public partial class DungeonGenerator : Node
     {
         DungeonRoomData room = GeneratedLayout?.FindRoom(roomId);
 
-        if(room == null || !room.Type.IsCombatRoom())
+        if (room == null || !room.Type.IsCombatRoom())
             return;
 
         UnlockRoomForExploration(room);
         EmitSignal(SignalName.RoomCompleted, roomId);
 
-        if(
+        if (
             !_schoolBagRoomIds.Add(roomId) ||
             SchoolBagSearchPointScene == null
         )
@@ -514,14 +535,15 @@ public partial class DungeonGenerator : Node
 
         Node instance = SchoolBagSearchPointScene.Instantiate();
 
-        if(instance is not Node2D schoolBag)
+        if (instance is not SchoolBagSearchPoint schoolBag)
         {
-            GD.PushWarning("书包搜索点场景的根节点不是 Node2D。");
+            GD.PushWarning("书包搜索点场景的根节点不是 SchoolBagSearchPoint。");
             instance.Free();
             return;
         }
 
         schoolBag.Name = $"SchoolBag_Room_{roomId}";
+        schoolBag.ConfigureRoomReward(room.Id, room.EncounterDifficulty);
         _runtime.AddChild(schoolBag);
         schoolBag.GlobalPosition = _groundLayer.ToGlobal(
             _groundLayer.MapToLocal(room.CenterCell)
@@ -531,7 +553,7 @@ public partial class DungeonGenerator : Node
 
     private void UnlockRoomForExploration(DungeonRoomData room)
     {
-        if(
+        if (
             room == null ||
             GeneratedLayout == null ||
             !_unlockedRoomIds.Add(room.Id)
@@ -558,7 +580,7 @@ public partial class DungeonGenerator : Node
         Vector2I cell
     )
     {
-        if(weaponScene == null)
+        if (weaponScene == null)
         {
             GD.PushWarning($"出生房缺少 {displayName} 武器场景绑定。");
             return;
@@ -566,7 +588,7 @@ public partial class DungeonGenerator : Node
 
         Node preview = weaponScene.Instantiate();
 
-        if(preview is not WeaponBase weapon)
+        if (preview is not WeaponBase weapon)
         {
             GD.PushWarning(
                 $"出生房武器 {weaponScene.ResourcePath} 不是 WeaponBase。"
@@ -599,14 +621,14 @@ public partial class DungeonGenerator : Node
 
     private static Sprite2D FindSpriteWithTexture(Node root)
     {
-        if(root is Sprite2D sprite && sprite.Texture != null)
+        if (root is Sprite2D sprite && sprite.Texture != null)
             return sprite;
 
-        foreach(Node child in root.GetChildren())
+        foreach (Node child in root.GetChildren())
         {
             Sprite2D found = FindSpriteWithTexture(child);
 
-            if(found != null)
+            if (found != null)
                 return found;
         }
 
@@ -617,9 +639,9 @@ public partial class DungeonGenerator : Node
     {
         int turnCount = 0;
 
-        foreach(DungeonCorridorData corridor in layout.Corridors)
+        foreach (DungeonCorridorData corridor in layout.Corridors)
         {
-            for(
+            for (
                 int index = 1;
                 index < corridor.PathCells.Count - 1;
                 index++
@@ -630,7 +652,7 @@ public partial class DungeonGenerator : Node
                 Vector2I outgoing = corridor.PathCells[index + 1] -
                     corridor.PathCells[index];
 
-                if(
+                if (
                     incoming.X != outgoing.X ||
                     incoming.Y != outgoing.Y
                 )
@@ -651,9 +673,9 @@ public partial class DungeonGenerator : Node
         int minimum = int.MaxValue;
         int maximum = int.MinValue;
 
-        foreach(DungeonCorridorData corridor in layout.Corridors)
+        foreach (DungeonCorridorData corridor in layout.Corridors)
         {
-            if(
+            if (
                 (corridor.Kind == DungeonCorridorKind.CrossLink) !=
                 crossLinks
             )
@@ -682,9 +704,9 @@ public partial class DungeonGenerator : Node
     {
         int count = 0;
 
-        foreach(DungeonCorridorData corridor in layout.Corridors)
+        foreach (DungeonCorridorData corridor in layout.Corridors)
         {
-            if(corridor.Kind == kind)
+            if (corridor.Kind == kind)
                 count++;
         }
 

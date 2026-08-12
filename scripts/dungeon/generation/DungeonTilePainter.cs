@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System;
 
 public sealed class DungeonTilePainter
 {
@@ -31,8 +32,13 @@ public sealed class DungeonTilePainter
     private static readonly Vector2I VerticalRightEndTile = new(3, 12);
     private static readonly Vector2I HorizontalEdgeTile = new(6, 10);
     private static readonly Vector2I HorizontalCenterTile = new(7, 5);
-    private static readonly Vector2I TurnWithLeftLegTile = new(3, 10);
-    private static readonly Vector2I TurnWithRightLegTile = new(11, 10);
+    private static readonly Vector2I DownTurnLeftInnerTile = new(1, 8);
+    private static readonly Vector2I DownTurnLeftOuterTile = new(2, 9);
+    private static readonly Vector2I DownTurnRightInnerTile = new(13, 8);
+    private static readonly Vector2I DownTurnRightOuterTile = new(12, 9);
+    private static readonly Vector2I HorizontalFenceLeftTile = new(1, 7);
+    private static readonly Vector2I HorizontalFenceLRMidTile = new(2, 7);
+    private static readonly Vector2I HorizontalFenceRightTile = new(3, 7);
 
     private readonly TileMapLayer _groundLayer;
     private readonly TileMapLayer _enemySpawnLayer;
@@ -41,13 +47,18 @@ public sealed class DungeonTilePainter
     private readonly TileMapLayer _doorIconLayer;
     private readonly int _recordingFloorSourceId;
 
+    private readonly DungeonGenerationConfig _config;
+    private readonly RandomNumberGenerator _random;
+
     public DungeonTilePainter(
         TileMapLayer groundLayer,
         TileMapLayer enemySpawnLayer,
         TileMapLayer playerSpawnLayer,
         TileMapLayer doorBlockerLayer,
         TileMapLayer doorIconLayer,
-        int recordingFloorSourceId
+        int recordingFloorSourceId,
+        DungeonGenerationConfig config,
+        RandomNumberGenerator random
     )
     {
         _groundLayer = groundLayer;
@@ -56,13 +67,15 @@ public sealed class DungeonTilePainter
         _doorBlockerLayer = doorBlockerLayer;
         _doorIconLayer = doorIconLayer;
         _recordingFloorSourceId = recordingFloorSourceId;
+        _config = config;
+        _random = random;
     }
 
     public bool ValidateRequiredAtlasTiles()
     {
         TileSet tileSet = _groundLayer?.TileSet;
 
-        if(
+        if (
             tileSet == null ||
             !tileSet.HasSource(_recordingFloorSourceId) ||
             tileSet.GetSource(_recordingFloorSourceId)
@@ -103,13 +116,18 @@ public sealed class DungeonTilePainter
             VerticalRightEndTile,
             HorizontalEdgeTile,
             HorizontalCenterTile,
-            TurnWithLeftLegTile,
-            TurnWithRightLegTile
+            DownTurnLeftInnerTile,
+            DownTurnLeftOuterTile,
+            DownTurnRightInnerTile,
+            DownTurnRightOuterTile,
+            HorizontalFenceLeftTile,
+            HorizontalFenceLRMidTile,
+            HorizontalFenceRightTile
         };
 
-        foreach(Vector2I atlasCoordinates in requiredTiles)
+        foreach (Vector2I atlasCoordinates in requiredTiles)
         {
-            if(atlasSource.HasTile(atlasCoordinates))
+            if (atlasSource.HasTile(atlasCoordinates))
                 continue;
 
             GD.PushError(
@@ -126,18 +144,18 @@ public sealed class DungeonTilePainter
     {
         PrepareLayers();
 
-        foreach(DungeonRoomData room in layout.Rooms)
+        foreach (DungeonRoomData room in layout.Rooms)
             PaintRoom(room);
 
-        foreach(DungeonCorridorData corridor in layout.Corridors)
+        foreach (DungeonCorridorData corridor in layout.Corridors)
             PaintCorridor(corridor);
 
-        foreach(DungeonRoomData room in layout.Rooms)
+        foreach (DungeonRoomData room in layout.Rooms)
         {
-            foreach(DungeonDoorData door in room.Doors)
+            foreach (DungeonDoorData door in room.Doors)
                 PaintOpenDoor(door);
 
-            foreach(Vector2I spawnCell in room.EnemySpawnCells)
+            foreach (Vector2I spawnCell in room.EnemySpawnCells)
             {
                 SetRecordingTile(
                     _enemySpawnLayer,
@@ -147,9 +165,16 @@ public sealed class DungeonTilePainter
             }
         }
 
+        foreach (DungeonRoomData room in layout.Rooms)
+            PaintHorizontalFence(room);
+
+        foreach (DungeonRoomData room in layout.Rooms)
+        {
+            PaintHorizontalFence(room);
+        }
         DungeonRoomData startRoom = layout.StartRoom;
 
-        if(startRoom != null)
+        if (startRoom != null)
         {
             SetRecordingTile(
                 _playerSpawnLayer,
@@ -180,9 +205,9 @@ public sealed class DungeonTilePainter
         int right = bounds.Position.X + bounds.Size.X - 1;
         int bottom = bounds.Position.Y + bounds.Size.Y - 1;
 
-        for(int y = bounds.Position.Y; y <= bottom; y++)
+        for (int y = bounds.Position.Y; y <= bottom; y++)
         {
-            for(int x = bounds.Position.X; x <= right; x++)
+            for (int x = bounds.Position.X; x <= right; x++)
             {
                 SetRecordingTile(
                     _groundLayer,
@@ -192,7 +217,7 @@ public sealed class DungeonTilePainter
             }
         }
 
-        for(int x = bounds.Position.X + 1; x < right; x++)
+        for (int x = bounds.Position.X + 1; x < right; x++)
         {
             SetRecordingTile(
                 _groundLayer,
@@ -206,7 +231,7 @@ public sealed class DungeonTilePainter
             );
         }
 
-        for(int y = bounds.Position.Y + 1; y < bottom; y++)
+        for (int y = bounds.Position.Y + 1; y < bottom; y++)
         {
             SetRecordingTile(
                 _groundLayer,
@@ -244,10 +269,10 @@ public sealed class DungeonTilePainter
 
     private void PaintOpenDoor(DungeonDoorData door)
     {
-        foreach(Vector2I cell in door.GetOccupiedCells())
+        foreach (Vector2I cell in door.GetOccupiedCells())
             SetRecordingTile(_groundLayer, cell, FloorTile);
 
-        switch(door.Direction)
+        switch (door.Direction)
         {
             case DungeonDirection.Right:
                 SetRecordingTile(
@@ -307,7 +332,7 @@ public sealed class DungeonTilePainter
     {
         IReadOnlyList<Vector2I> path = corridor.PathCells;
 
-        for(int index = 0; index < path.Count; index++)
+        for (int index = 0; index < path.Count; index++)
         {
             Vector2I cell = path[index];
             Vector2I previous = index == 0
@@ -321,20 +346,12 @@ public sealed class DungeonTilePainter
             bool isTurn = incoming.X != 0 && outgoing.Y != 0 ||
                 incoming.Y != 0 && outgoing.X != 0;
 
-            if(isTurn)
+            if (isTurn)
             {
-                bool hasLeftLeg = previous.X < cell.X || next.X < cell.X;
-                SetRecordingTile(
-                    _groundLayer,
-                    cell,
-                    hasLeftLeg
-                        ? TurnWithLeftLegTile
-                        : TurnWithRightLegTile
-                );
                 continue;
             }
 
-            if(incoming.X != 0 || outgoing.X != 0)
+            if (incoming.X != 0 || outgoing.X != 0)
             {
                 PaintHorizontalCorridorCell(cell);
                 continue;
@@ -347,6 +364,134 @@ public sealed class DungeonTilePainter
                 cell,
                 reachesRoomWhileMovingDown
             );
+        }
+
+        // Turn pieces are applied last so neighboring straight cells cannot
+        // overwrite the inner-radius tile shared by both corridor footprints.
+        for (int index = 0; index < path.Count; index++)
+        {
+            Vector2I cell = path[index];
+            Vector2I previous = index == 0
+                ? corridor.FromDoor.Cell
+                : path[index - 1];
+            Vector2I next = index == path.Count - 1
+                ? corridor.ToDoor.Cell
+                : path[index + 1];
+            Vector2I incoming = cell - previous;
+            Vector2I outgoing = next - cell;
+            bool isTurn = incoming.X != 0 && outgoing.Y != 0 ||
+                incoming.Y != 0 && outgoing.X != 0;
+
+            if (isTurn)
+                PaintCorridorTurn(previous, cell, next);
+        }
+    }
+
+    private void PaintCorridorTurn(
+        Vector2I previous,
+        Vector2I cell,
+        Vector2I next
+    )
+    {
+        foreach (TurnTilePlacement placement in GetTurnTilePlacements(
+            previous,
+            cell,
+            next
+        ))
+        {
+            SetRecordingTile(
+                _groundLayer,
+                cell + placement.Offset,
+                placement.AtlasCoordinates,
+                placement.AlternativeTile
+            );
+        }
+    }
+
+    internal static TurnTilePlacement[] GetTurnTilePlacements(
+        Vector2I previous,
+        Vector2I cell,
+        Vector2I next
+    )
+    {
+        bool hasLeftLeg = previous.X < cell.X || next.X < cell.X;
+        bool hasUpperLeg = previous.Y < cell.Y || next.Y < cell.Y;
+
+        if (hasUpperLeg && hasLeftLeg)
+        {
+            return new TurnTilePlacement[]
+            {
+                new(Vector2I.Left + Vector2I.Up, DownTurnLeftInnerTile),
+                new(Vector2I.Left, HorizontalCenterTile),
+                new(Vector2I.Zero, VerticalRightConnectionTile),
+                new(Vector2I.Down, DownTurnLeftOuterTile)
+            };
+        }
+
+        if (hasUpperLeg)
+        {
+            return new TurnTilePlacement[]
+            {
+                new(Vector2I.Up, DownTurnRightInnerTile),
+                new(Vector2I.Left, VerticalLeftConnectionTile),
+                new(Vector2I.Zero, HorizontalCenterTile),
+                new(Vector2I.Left + Vector2I.Down, DownTurnRightOuterTile)
+            };
+        }
+
+        int flipVertically = (int)TileSetAtlasSource.TransformFlipV;
+
+        if (hasLeftLeg)
+        {
+            return new TurnTilePlacement[]
+            {
+                new(
+                    Vector2I.Left + Vector2I.Down,
+                    DownTurnLeftInnerTile,
+                    flipVertically
+                ),
+                new(Vector2I.Left, HorizontalCenterTile),
+                new(Vector2I.Zero, VerticalRightConnectionTile),
+                new(
+                    Vector2I.Up,
+                    DownTurnLeftOuterTile,
+                    flipVertically
+                )
+            };
+        }
+
+        return new TurnTilePlacement[]
+        {
+            new(
+                Vector2I.Down,
+                DownTurnRightInnerTile,
+                flipVertically
+            ),
+            new(Vector2I.Left, VerticalLeftConnectionTile),
+            new(Vector2I.Zero, HorizontalCenterTile),
+            new(
+                Vector2I.Left + Vector2I.Up,
+                DownTurnRightOuterTile,
+                flipVertically
+            )
+        };
+    }
+
+    internal readonly struct TurnTilePlacement
+    {
+        public Vector2I Offset { get; }
+        public Vector2I AtlasCoordinates { get; }
+        public int AlternativeTile { get; }
+
+        public TurnTilePlacement(
+            Vector2I offset,
+            Vector2I atlasCoordinates,
+            int alternativeTile = 0
+        )
+        {
+            Offset = offset;
+            AtlasCoordinates = atlasCoordinates;
+            AlternativeTile = alternativeTile;
         }
     }
 
@@ -393,14 +538,160 @@ public sealed class DungeonTilePainter
     private void SetRecordingTile(
         TileMapLayer layer,
         Vector2I cell,
-        Vector2I atlasCoordinates
+        Vector2I atlasCoordinates,
+        int alternativeTile = 0
     )
     {
         layer.SetCell(
             cell,
             _recordingFloorSourceId,
             atlasCoordinates,
-            0
+            alternativeTile
         );
+    }
+    private void PaintHorizontalFence(DungeonRoomData room)
+    {
+        if (room.Type != DungeonRoomType.Monster)
+            return;
+
+        if (_random.Randf() > _config.HorizontalFenceChance)
+            return;
+
+        int clearance = Math.Max(_config.HorizontalFenceWallClearance, (byte)1);
+
+        int roomLeft = room.Bounds.Position.X;
+        int roomTop = room.Bounds.Position.Y;
+        int roomRight = room.Bounds.End.X - 1;
+        int roomBottom = room.Bounds.End.Y - 1;
+
+        int minimumX = roomLeft + 1 + clearance;
+        int maximumX = roomRight - 1 - clearance;
+        int minimumY = roomTop + 1 + clearance;
+        int maximumY = roomBottom - 1 - clearance;
+
+        int availableWidth = maximumX - minimumX + 1;
+
+        if (
+                availableWidth <
+                _config.MinimumHorizontalFenceLength ||
+                minimumY > maximumY
+            )
+        {
+            return;
+        }
+
+        int minimumLength = Math.Clamp(
+            _config.MinimumHorizontalFenceLength,
+            3,
+            availableWidth
+        );
+
+        int maximumLength = Math.Clamp(
+            _config.MaximumHorizontalFenceLength,
+            minimumLength,
+            availableWidth
+        );
+
+        int fenceLength = _random.RandiRange(
+            minimumLength,
+            maximumLength
+        );
+
+        // 尝试寻找一个不会覆盖重要位置的地点。
+        const int MaximumPlacementAttempts = 20;
+
+        for (
+            int attempt = 0;
+            attempt < MaximumPlacementAttempts;
+            attempt++
+        )
+        {
+            int startX = _random.RandiRange(
+                minimumX,
+                maximumX - fenceLength + 1
+            );
+
+            int y = _random.RandiRange(
+                minimumY,
+                maximumY
+            );
+
+            if (!CanPlaceHorizontalFence(
+                room,
+                startX,
+                y,
+                fenceLength
+            ))
+            {
+                continue;
+            }
+
+            for (int offset = 0; offset < fenceLength; offset++)
+            {
+                Vector2I atlasCoordinates =
+                    offset == 0
+                        ? HorizontalFenceLeftTile
+                        : offset == fenceLength - 1
+                            ? HorizontalFenceRightTile
+                            : HorizontalFenceLRMidTile;
+
+                SetRecordingTile(
+                    _groundLayer,
+                    new Vector2I(startX + offset, y),
+                    atlasCoordinates
+                );
+            }
+
+            return;
+        }
+    }
+    private bool CanPlaceHorizontalFence(
+    DungeonRoomData room,
+    int startX,
+    int y,
+    int length
+)
+    {
+        for (int offset = 0; offset < length; offset++)
+        {
+            Vector2I cell = new(startX + offset, y);
+
+            // 房间清理后的书包会生成在中心，所以中心附近要留空。
+            if (
+                Math.Abs(cell.X - room.CenterCell.X) <= 1 &&
+                Math.Abs(cell.Y - room.CenterCell.Y) <= 1
+            )
+            {
+                return false;
+            }
+
+            // 不允许压住敌人生成点。
+            foreach (Vector2I spawnCell in room.EnemySpawnCells)
+            {
+                if (
+                    Math.Abs(cell.X - spawnCell.X) <= 1 &&
+                    Math.Abs(cell.Y - spawnCell.Y) <= 1
+                )
+                {
+                    return false;
+                }
+            }
+
+            // 不允许靠近门。
+            foreach (DungeonDoorData door in room.Doors)
+            {
+                foreach (Vector2I doorCell in door.GetOccupiedCells())
+                {
+                    int distance =
+                        Math.Abs(cell.X - doorCell.X) +
+                        Math.Abs(cell.Y - doorCell.Y);
+
+                    if (distance <= 3)
+                        return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

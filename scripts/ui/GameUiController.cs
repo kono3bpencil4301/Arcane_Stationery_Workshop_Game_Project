@@ -30,6 +30,8 @@ public partial class GameUiController : CanvasLayer
             );
         RunHudState runState =
             player?.GetNodeOrNull<RunHudState>("RunHudState");
+        InkCoinWallet inkCoinWallet =
+            player?.GetNodeOrNull<InkCoinWallet>("InkCoinWallet");
         _paintController = player?.GetNodeOrNull<PaintStrokeController>(
             "WeaponManager/PaintStrokeController"
         );
@@ -51,7 +53,8 @@ public partial class GameUiController : CanvasLayer
             skillCharge == null ||
             inventory == null ||
             equipment == null ||
-            consumableUse == null
+            consumableUse == null ||
+            inkCoinWallet == null
         )
         {
             GD.PushError("GameUI 找不到玩家 HUD 依赖，界面未初始化。");
@@ -119,8 +122,28 @@ public partial class GameUiController : CanvasLayer
         equipmentBar.OffsetBottom = -14;
         root.AddChild(equipmentBar);
 
+        InkCoinCounterView hudInkCoins = new()
+        {
+            Name = "HudInkCoinCounter"
+        };
+        hudInkCoins.Bind(inkCoinWallet);
+        hudInkCoins.AnchorLeft = 0.5f;
+        hudInkCoins.AnchorRight = 0.5f;
+        hudInkCoins.AnchorTop = 1.0f;
+        hudInkCoins.AnchorBottom = 1.0f;
+        hudInkCoins.OffsetLeft = -64;
+        hudInkCoins.OffsetTop = -104;
+        hudInkCoins.OffsetRight = 64;
+        hudInkCoins.OffsetBottom = -74;
+        root.AddChild(hudInkCoins);
+
         _inventoryPanel = new InventoryPanelController();
-        _inventoryPanel.Bind(inventory, equipment, weaponManager);
+        _inventoryPanel.Bind(
+            inventory,
+            equipment,
+            weaponManager,
+            inkCoinWallet
+        );
         root.AddChild(_inventoryPanel);
 
         weaponBar.DropRequested += _inventoryPanel.TryEquipWeaponEntry;

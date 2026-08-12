@@ -75,6 +75,14 @@ public partial class Player : CharacterBody2D, IDamageable
     [Export(PropertyHint.Range, "0,3,0.05")]
     public float SceneResetDelay { get; set; } = 0.2f;
 
+    [ExportCategory("SFX")]
+
+    [Export]
+    public AudioStream[] PlayerHurtSFX { get; set; } = new AudioStream[0];
+
+    [Export]
+    public AudioStream PlayerDeathSFX { get; set; }
+
     public float CurrentHealth { get; private set; }
     public bool IsDead { get; private set; }
     public bool MovementLocked { get; private set; }
@@ -91,6 +99,7 @@ public partial class Player : CharacterBody2D, IDamageable
     private Color _normalSpriteColor = Colors.White;
     private AnimationPlayer _animationPlayer;
     private float _pollutionMovementMultiplier = 1.0f;
+    private readonly RandomNumberGenerator _audioRandom = new();
 
     public override void _Ready()
     {
@@ -101,6 +110,7 @@ public partial class Player : CharacterBody2D, IDamageable
         _isInvulnerable = false;
         _sceneResetScheduled = false;
         MovementLocked = false;
+        _audioRandom.Randomize();
 
         _bodySprite =
             GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
@@ -128,7 +138,7 @@ public partial class Player : CharacterBody2D, IDamageable
             return;
         }
 
-        if(MovementLocked)
+        if (MovementLocked)
         {
             Velocity = Vector2.Zero;
             UpdateAnimation();
@@ -161,16 +171,16 @@ public partial class Player : CharacterBody2D, IDamageable
     /// </summary>
     private void PushCollidingEnemies(Vector2 movement)
     {
-        if(movement.IsZeroApprox() || EnemyPushSpeed <= 0.0f)
+        if (movement.IsZeroApprox() || EnemyPushSpeed <= 0.0f)
             return;
 
         Vector2 pushDirection = movement.Normalized();
 
-        for(int index = 0; index < GetSlideCollisionCount(); index++)
+        for (int index = 0; index < GetSlideCollisionCount(); index++)
         {
             KinematicCollision2D collision = GetSlideCollision(index);
 
-            if(collision.GetCollider() is EnemyBase enemy)
+            if (collision.GetCollider() is EnemyBase enemy)
                 enemy.ApplyPlayerPush(pushDirection, EnemyPushSpeed);
         }
     }
@@ -221,13 +231,13 @@ public partial class Player : CharacterBody2D, IDamageable
     {
         MovementLocked = locked && !IsDead;
 
-        if(MovementLocked)
+        if (MovementLocked)
             Velocity = Vector2.Zero;
     }
 
     public float RestoreHealth(float amount)
     {
-        if(IsDead || amount <= 0.0f)
+        if (IsDead || amount <= 0.0f)
             return 0.0f;
 
         float previousHealth = CurrentHealth;
@@ -237,7 +247,7 @@ public partial class Player : CharacterBody2D, IDamageable
         );
         float restored = CurrentHealth - previousHealth;
 
-        if(restored <= 0.0f)
+        if (restored <= 0.0f)
             return 0.0f;
 
         FloatingDamageNumber.SpawnHealing(
@@ -296,6 +306,8 @@ public partial class Player : CharacterBody2D, IDamageable
             Die();
             return;
         }
+
+        PlayRandomHurtSFX();
 
         StartDamageFeedback();
 
@@ -359,6 +371,8 @@ public partial class Player : CharacterBody2D, IDamageable
             return;
 
         IsDead = true;
+        PlaySFX(PlayerDeathSFX);
+
         MovementLocked = false;
         _isInvulnerable = true;
         Velocity = Vector2.Zero;
@@ -427,6 +441,23 @@ public partial class Player : CharacterBody2D, IDamageable
             ScheduleSceneReset();
     }
 
+    private void PlayRandomHurtSFX()
+    {
+        if (PlayerHurtSFX == null || PlayerHurtSFX.Length == 0)
+            return;
+
+        int index = _audioRandom.RandiRange(0, PlayerHurtSFX.Length - 1);
+        PlaySFX(PlayerHurtSFX[index]);
+    }
+
+    private void PlaySFX(AudioStream stream)
+    {
+        if (stream == null)
+            return;
+
+        GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySFX(stream);
+    }
+
     private void OnAnimationFinished()
     {
         if (
@@ -475,6 +506,12 @@ public partial class Player : CharacterBody2D, IDamageable
             return;
 
         Engine.TimeScale = 1.0;
+
+        AudioManager audioManager =
+        GetNodeOrNull<AudioManager>("/root/AudioManager");
+
+        audioManager?.StopMusic();
+
         Error error = GetTree().ReloadCurrentScene();
 
         if (error != Error.Ok)

@@ -146,10 +146,25 @@ public partial class DungeonEncounterController : Node
             return;
 
         _spawnPhaseCompleted = true;
+
+        ForceAwakenRemainingFungi();
+
         GD.Print(
             $"[DungeonEncounter] 战斗房 {ActiveRoom.Id} 计时结束，" +
             "等待清除现存敌人。"
         );
+    }
+
+    private void ForceAwakenRemainingFungi()
+    {
+        foreach(Node2D enemy in _activeEnemies)
+        {
+            if(!GodotObject.IsInstanceValid(enemy))
+                continue;
+
+            if(enemy is TheMoldSpotFungus fungus)
+                fungus.ForceAwaken();
+        }
     }
 
     private void CompleteEncounter()

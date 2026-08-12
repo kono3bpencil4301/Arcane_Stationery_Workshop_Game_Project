@@ -35,4 +35,18 @@ public partial class DungeonGenerationConfig : Resource
 
     [Export(PropertyHint.Range, "1,100,1")]
     public int MaximumGenerationAttempts { get; set; } = 20;
+
+    [ExportCategory("Monster Room Fence")]
+
+    [Export(PropertyHint.Range, "0,1,0.05")]
+    public float HorizontalFenceChance { get; set; } = 0.4f;
+
+    [Export(PropertyHint.Range, "3,12,1")]
+    public int MinimumHorizontalFenceLength { get; set; } = 3;
+
+    [Export(PropertyHint.Range, "3,12,1")]
+    public int MaximumHorizontalFenceLength { get; set; } = 7;
+
+    [Export(PropertyHint.Range, "1,5,1")]
+    public int HorizontalFenceWallClearance { get; set; } = 2;
 }

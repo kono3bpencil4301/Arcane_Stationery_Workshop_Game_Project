@@ -75,11 +75,22 @@ public partial class MoldSporeProjectile : CharacterBody2D, IErasable
             return;
         }
 
-        KinematicCollision2D collision =
-            MoveAndCollide(_direction * _speed * physicsDelta);
+        Vector2 intendedMotion = _direction * _speed * physicsDelta;
+        Vector2 motionStart = GlobalPosition;
+        KinematicCollision2D collision = MoveAndCollide(intendedMotion);
 
         if(collision == null)
             return;
+
+        if(EnemyProjectileTileCollision.IsFence(collision))
+        {
+            EnemyProjectileTileCollision.FinishMotionThroughFence(
+                this,
+                motionStart,
+                intendedMotion
+            );
+            return;
+        }
 
         Node collider = collision.GetCollider() as Node;
 

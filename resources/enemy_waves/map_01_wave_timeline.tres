@@ -3,77 +3,14 @@
 [ext_resource type="Script" uid="uid://cpucp522x2ca4" path="res://scripts/enemy/spawning/EnemyWaveTimelineData.cs" id="1_timeline"]
 [ext_resource type="Script" uid="uid://dapu5f28xn5ht" path="res://scripts/enemy/spawning/EnemyWaveEvent.cs" id="2_event"]
 [ext_resource type="PackedScene" uid="uid://qsrqd6nloxb7" path="res://scenes/enemies/the_ink_blob.tscn" id="3_7hom7"]
-[ext_resource type="Script" uid="uid://b0gl1eccvvwmo" path="res://scripts/enemy/enemy_type/TheInkBlob.cs" id="3_bt7os"]
 [ext_resource type="Script" uid="uid://dcbm78vp4wu0j" path="res://scripts/enemy/spawning/EnemyWaveData.cs" id="3_wave"]
-[ext_resource type="Texture2D" uid="uid://raunanrcb77v" path="res://assets/enemy/001_The_Ink_Blob_Ani.png" id="4_b406n"]
 [ext_resource type="Script" uid="uid://btmf36urq52hy" path="res://scripts/enemy/spawning/EnemySpawnEntry.cs" id="4_entry"]
 [ext_resource type="PackedScene" uid="uid://uhi45munt7ht" path="res://scenes/enemies/the_crispy_paged_doll.tscn" id="5_xvw3y"]
 [ext_resource type="PackedScene" uid="uid://cqepg4x7scty3" path="res://scenes/enemies/the_mold_spot_fungus.tscn" id="8_b406n"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_0"]
-atlas = ExtResource("4_b406n")
-region = Rect2(0, 0, 32, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1"]
-atlas = ExtResource("4_b406n")
-region = Rect2(32, 0, 32, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_2"]
-atlas = ExtResource("4_b406n")
-region = Rect2(64, 0, 32, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_3"]
-atlas = ExtResource("4_b406n")
-region = Rect2(96, 0, 32, 48)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_ink_blob"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_2")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3")
-}],
-"loop": 1,
-"name": &"default",
-"speed": 9.0
-}]
-
-[sub_resource type="CircleShape2D" id="CircleShape_collision"]
-radius = 11.7047
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape_hurt"]
-radius = 9.0
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape_hit"]
-radius = 9.0
-height = 28.0
-
-[sub_resource type="PackedScene" id="PackedScene_ccmn2"]
-_bundled = {
-"conn_count": 0,
-"conns": PackedInt32Array(),
-"editable_instances": [],
-"id_paths": [],
-"names": PackedStringArray("TheInkBlob", "collision_layer", "collision_mask", "script", "PollutionRadius", "PollutionDuration", "PollutionColor", "MaxHealth", "MoveSpeed", "enemy", "CharacterBody2D", "AnimatedSprite2D", "sprite_frames", "autoplay", "frame_progress", "CollisionLayer", "shape", "CollisionShape2D", "HurtBox", "HitBox"),
-"node_count": 5,
-"node_ids": PackedInt32Array(558587576, 38213705, 1309163852, 362083372, 393145606),
-"node_paths": [],
-"nodes": PackedInt32Array(-1, -1, 10, 0, -1, 8, 1, 0, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 1, 9, 0, 0, 11, 11, -1, 3, 12, 8, 13, 9, 14, 10, 0, 0, 0, 17, 15, -1, 1, 16, 11, 0, 0, 0, 17, 18, -1, 1, 16, 12, 0, 0, 0, 17, 19, -1, 1, 16, 13, 0),
-"variants": [4, 7, ExtResource("3_bt7os"), 20.0, 3.0, Color(0.3075, 0, 0.41, 0.5647059), 80.0, 60.0, SubResource("SpriteFrames_ink_blob"), "default", 0.8776815, SubResource("CircleShape_collision"), SubResource("CapsuleShape_hurt"), SubResource("CapsuleShape_hit")],
-"version": 3
-}
-
 [sub_resource type="Resource" id="EnemySpawnEntry_small"]
 script = ExtResource("4_entry")
-EnemyScene = SubResource("PackedScene_ccmn2")
+EnemyScene = ExtResource("3_7hom7")
 
 [sub_resource type="Resource" id="EnemyWaveData_small"]
 script = ExtResource("3_wave")

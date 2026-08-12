@@ -14,6 +14,10 @@ public partial class DungeonLayoutBranchStressTest : Node
         int totalAttempts = 0;
         int layoutsWithStraightCrossLink = 0;
         int layoutsWithBentCrossLink = 0;
+        int verifiedDownLeftTurns = 0;
+        int verifiedDownRightTurns = 0;
+        int verifiedLowerLeftTurns = 0;
+        int verifiedLowerRightTurns = 0;
 
         for(int requestedCrossLinks = 1; requestedCrossLinks <= 3;
             requestedCrossLinks++)
@@ -92,6 +96,17 @@ public partial class DungeonLayoutBranchStressTest : Node
                     DungeonCorridorData corridor in validLayout.Corridors
                 )
                 {
+                    if(!ValidateDownTurnMappings(
+                        corridor,
+                        ref verifiedDownLeftTurns,
+                        ref verifiedDownRightTurns,
+                        ref verifiedLowerLeftTurns,
+                        ref verifiedLowerRightTurns
+                    ))
+                    {
+                        return;
+                    }
+
                     if(corridor.Kind == DungeonCorridorKind.CrossLink)
                     {
                         crossLinkCount++;
@@ -150,14 +165,174 @@ public partial class DungeonLayoutBranchStressTest : Node
             }
         }
 
+        if(
+            verifiedDownLeftTurns == 0 ||
+            verifiedDownRightTurns == 0 ||
+            verifiedLowerLeftTurns == 0 ||
+            verifiedLowerRightTurns == 0
+        )
+        {
+            Fail(
+                "压力样本没有覆盖全部四种拐角组合：" +
+                $"upper_left={verifiedDownLeftTurns}, " +
+                $"upper_right={verifiedDownRightTurns}, " +
+                $"lower_left={verifiedLowerLeftTurns}, " +
+                $"lower_right={verifiedLowerRightTurns}"
+            );
+            return;
+        }
+
         GD.Print(
             $"[DungeonLayoutBranchStressTest] PASS layouts=" +
             $"{SeedCountPerCrossLinkSetting * 3}, " +
             $"attempts={totalAttempts}, " +
             $"straight_cross_links={layoutsWithStraightCrossLink}, " +
-            $"bent_cross_links={layoutsWithBentCrossLink}"
+            $"bent_cross_links={layoutsWithBentCrossLink}, " +
+            $"down_left_turns={verifiedDownLeftTurns}, " +
+            $"down_right_turns={verifiedDownRightTurns}, " +
+            $"lower_left_turns={verifiedLowerLeftTurns}, " +
+            $"lower_right_turns={verifiedLowerRightTurns}"
         );
         GetTree().Quit(0);
+    }
+
+    private bool ValidateDownTurnMappings(
+        DungeonCorridorData corridor,
+        ref int downLeftTurns,
+        ref int downRightTurns,
+        ref int lowerLeftTurns,
+        ref int lowerRightTurns
+    )
+    {
+        for(int index = 0; index < corridor.PathCells.Count; index++)
+        {
+            Vector2I cell = corridor.PathCells[index];
+            Vector2I previous = index == 0
+                ? corridor.FromDoor.Cell
+                : corridor.PathCells[index - 1];
+            Vector2I next = index == corridor.PathCells.Count - 1
+                ? corridor.ToDoor.Cell
+                : corridor.PathCells[index + 1];
+            Vector2I incoming = cell - previous;
+            Vector2I outgoing = next - cell;
+            bool isTurn = incoming.X != 0 && outgoing.Y != 0 ||
+                incoming.Y != 0 && outgoing.X != 0;
+
+            if(!isTurn)
+                continue;
+
+            bool hasUpperLeg = previous.Y < cell.Y || next.Y < cell.Y;
+            bool hasLeftLeg = previous.X < cell.X || next.X < cell.X;
+            DungeonTilePainter.TurnTilePlacement[] placements =
+                DungeonTilePainter.GetTurnTilePlacements(
+                    previous,
+                    cell,
+                    next
+                );
+
+            Vector2I expectedInnerOffset = hasUpperLeg
+                ? hasLeftLeg
+                    ? Vector2I.Left + Vector2I.Up
+                    : Vector2I.Up
+                : hasLeftLeg
+                    ? Vector2I.Left + Vector2I.Down
+                    : Vector2I.Down;
+            Vector2I expectedInnerTile = hasLeftLeg
+                ? new Vector2I(1, 8)
+                : new Vector2I(13, 8);
+            Vector2I expectedOuterOffset = hasUpperLeg
+                ? hasLeftLeg
+                    ? Vector2I.Down
+                    : Vector2I.Left + Vector2I.Down
+                : hasLeftLeg
+                    ? Vector2I.Up
+                    : Vector2I.Left + Vector2I.Up;
+            Vector2I expectedOuterTile = hasLeftLeg
+                ? new Vector2I(2, 9)
+                : new Vector2I(12, 9);
+            Vector2I expectedSideOffset = Vector2I.Left;
+            Vector2I expectedSideTile = hasLeftLeg
+                ? new Vector2I(7, 5)
+                : new Vector2I(11, 11);
+            Vector2I expectedCenterTile = hasLeftLeg
+                ? new Vector2I(3, 11)
+                : new Vector2I(7, 5);
+            int expectedRadiusAlternative = hasUpperLeg
+                ? 0
+                : (int)TileSetAtlasSource.TransformFlipV;
+
+            if(
+                placements.Length != 4 ||
+                !ContainsPlacement(
+                    placements,
+                    expectedInnerOffset,
+                    expectedInnerTile,
+                    expectedRadiusAlternative
+                ) ||
+                !ContainsPlacement(
+                    placements,
+                    expectedOuterOffset,
+                    expectedOuterTile,
+                    expectedRadiusAlternative
+                ) ||
+                !ContainsPlacement(
+                    placements,
+                    expectedSideOffset,
+                    expectedSideTile
+                ) ||
+                !ContainsPlacement(
+                    placements,
+                    Vector2I.Zero,
+                    expectedCenterTile
+                )
+            )
+            {
+                Fail(
+                    $"走廊{corridor.Id}的" +
+                    $"下拐{(hasLeftLeg ? "左" : "右")}瓦片映射错误。"
+                );
+                return false;
+            }
+
+            if(hasLeftLeg)
+            {
+                if(hasUpperLeg)
+                    downLeftTurns++;
+                else
+                    lowerLeftTurns++;
+            }
+            else
+            {
+                if(hasUpperLeg)
+                    downRightTurns++;
+                else
+                    lowerRightTurns++;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsPlacement(
+        DungeonTilePainter.TurnTilePlacement[] placements,
+        Vector2I offset,
+        Vector2I atlasCoordinates,
+        int alternativeTile = 0
+    )
+    {
+        foreach(DungeonTilePainter.TurnTilePlacement placement in placements)
+        {
+            if(
+                placement.Offset == offset &&
+                placement.AtlasCoordinates == atlasCoordinates &&
+                placement.AlternativeTile == alternativeTile
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static int CountTurns(DungeonCorridorData corridor)

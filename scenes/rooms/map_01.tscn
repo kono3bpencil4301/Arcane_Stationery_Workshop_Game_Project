@@ -1,19 +1,24 @@
 [gd_scene format=3 uid="uid://g1netkchghlt"]
 
+[ext_resource type="Script" uid="uid://oml7ga30ht40" path="res://scripts/Main.cs" id="1_gmcvx"]
+[ext_resource type="AudioStream" uid="uid://b34triof5aycl" path="res://assets/bgm/001_paperwave_circuit.ogg" id="2_vfkqq"]
+[ext_resource type="AudioStream" uid="uid://candaxqslp2my" path="res://assets/bgm/002_clip_to_the_chase.ogg" id="3_f1eyt"]
 [ext_resource type="PackedScene" uid="uid://bb1knoh138nuv" path="res://scenes/player/wenny.tscn" id="3_obaij"]
 [ext_resource type="Texture2D" uid="uid://dgcigr0y8teul" path="res://assets/maps/01_recording_floor_room.jpg" id="3_sshdn"]
 [ext_resource type="Texture2D" uid="uid://bq3m22t5l3qbw" path="res://assets/maps/01_tile_overlay_layer.png" id="4_gmcvx"]
 [ext_resource type="Script" uid="uid://dtsrokw74xuqb" path="res://scripts/Player.cs" id="4_ii7il"]
+[ext_resource type="AudioStream" uid="uid://bk3fmlewiiwvc" path="res://assets/bgm/003_between_the_margins.ogg" id="4_lyyxv"]
 [ext_resource type="Script" uid="uid://db5j8nynuk3e2" path="res://scripts/skill/drawing/PaintCanvas2D.cs" id="5_obaij"]
 [ext_resource type="Script" uid="uid://b0hshmqw4u75u" path="res://scripts/dungeon/generation/DungeonGenerator.cs" id="6_room_generator"]
 [ext_resource type="PackedScene" uid="uid://dni1mbkjxfk36" path="res://scenes/weapons/pencil_weapon.tscn" id="7_1d1rj"]
 [ext_resource type="Script" uid="uid://cmy6dle3umrsd" path="res://scripts/enemy/spawning/EnemySpawner.cs" id="7_enemy_spawner"]
-[ext_resource type="Script" uid="uid://bs85eraau74pr" path="res://scripts/combat/weapons/WeaponSlotConfig.cs" id="8_lk8br"]
 [ext_resource type="Resource" uid="uid://dvkkqufwp5tgj" path="res://resources/enemy_waves/map_01_wave_timeline.tres" id="8_wave_timeline"]
-[ext_resource type="PackedScene" path="res://scenes/ui/game_ui.tscn" id="9_game_ui"]
+[ext_resource type="PackedScene" uid="uid://c6vwmlfln8jw3" path="res://scenes/ui/game_ui.tscn" id="9_game_ui"]
 [ext_resource type="PackedScene" uid="uid://cl6lutsicwbl8" path="res://scenes/weapons/chalk_weapon.tscn" id="9_i20ya"]
 [ext_resource type="PackedScene" uid="uid://c6dq55n2f07ja" path="res://scenes/weapons/earser_weapon/eraser_weapon.tscn" id="10_eraser"]
 [ext_resource type="PackedScene" path="res://scenes/items/school_bag_search_point.tscn" id="11_school_bag"]
+[ext_resource type="AudioStream" uid="uid://brpgnend1hhgh" path="res://assets/audio/player/sfx_player_hurt_01.wav" id="12_player_hurt"]
+[ext_resource type="AudioStream" uid="uid://b7luktf1o5ba3" path="res://assets/audio/player/sfx_player_death.wav" id="13_player_death"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vfkqq"]
 texture = ExtResource("3_sshdn")
@@ -224,6 +229,7 @@ texture_region_size = Vector2i(48, 48)
 0:9/0 = 0
 1:9/0 = 0
 2:9/0 = 0
+2:9/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 3:9/0 = 0
 3:9/0/physics_layer_0/polygon_0/points = PackedVector2Array(24, -24, 24, 24, -24, 24, -24, -24)
 4:9/0 = 0
@@ -236,6 +242,7 @@ texture_region_size = Vector2i(48, 48)
 11:9/0 = 0
 11:9/0/physics_layer_0/polygon_0/points = PackedVector2Array(24, -24, 24, 24, -24, 24, -24, -24)
 12:9/0 = 0
+12:9/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 13:9/0 = 0
 14:9/0 = 0
 0:10/0 = 0
@@ -377,46 +384,30 @@ physics_layer_0/collision_mask = 0
 sources/1 = SubResource("TileSetAtlasSource_vfkqq")
 sources/2 = SubResource("TileSetAtlasSource_f1eyt")
 
-[sub_resource type="Resource" id="Resource_khjf5"]
-script = ExtResource("8_lk8br")
-ControllerScene = ExtResource("7_1d1rj")
-IsDefault = true
-
-[sub_resource type="Resource" id="Resource_1mgfk"]
-script = ExtResource("8_lk8br")
-ControllerScene = ExtResource("9_i20ya")
-
-[sub_resource type="Resource" id="Resource_eraser"]
-script = ExtResource("8_lk8br")
-ControllerScene = ExtResource("10_eraser")
-metadata/_custom_type_script = "uid://c5um68dwspj0j"
-
 [node name="Node2D" type="Node2D" unique_id=455576612]
+script = ExtResource("1_gmcvx")
+Music = [ExtResource("2_vfkqq"), ExtResource("3_f1eyt"), ExtResource("4_lyyxv")]
 
 [node name="GroundTileMapLayer" type="TileMapLayer" parent="." unique_id=523909518]
 tile_set = SubResource("TileSet_wvhbo")
 
 [node name="PlayerSpawnTileLayer" type="TileMapLayer" parent="." unique_id=1810307719]
-z_index = 0
 tile_set = SubResource("TileSet_wvhbo")
 
-[node name="DoorBlockerTileMapLayer" type="TileMapLayer" parent="."]
-z_index = 0
+[node name="DoorBlockerTileMapLayer" type="TileMapLayer" parent="." unique_id=1910779813]
 tile_set = SubResource("TileSet_wvhbo")
 
-[node name="DoorIconTileMapLayer" type="TileMapLayer" parent="."]
-z_index = 0
+[node name="DoorIconTileMapLayer" type="TileMapLayer" parent="." unique_id=373445696]
 tile_set = SubResource("TileSet_wvhbo")
 
 [node name="EnemySpawnerTileLayer" type="TileMapLayer" parent="." unique_id=1739425229]
-z_index = 0
 tile_set = SubResource("TileSet_wvhbo")
 script = ExtResource("7_enemy_spawner")
 Timeline = ExtResource("8_wave_timeline")
 AutoStart = false
 HideSpawnMarkersAtRuntime = false
 
-[node name="DungeonRuntime" type="Node2D" parent="."]
+[node name="DungeonRuntime" type="Node2D" parent="." unique_id=928022821]
 
 [node name="DungeonGenerator" type="Node" parent="." unique_id=652262549]
 script = ExtResource("6_room_generator")
@@ -432,6 +423,8 @@ script = ExtResource("4_ii7il")
 MaxHealth = 150.0
 DamageFlashDuration = 0.16
 SceneResetDelay = 2.0
+PlayerHurtSFX = [ExtResource("12_player_hurt")]
+PlayerDeathSFX = ExtResource("13_player_death")
 
 [node name="WeaponManager" parent="Player" index="3" unique_id=756438691]
 WeaponSlots = []
@@ -448,5 +441,11 @@ _canvasWidth = 1344
 _canvasHeight = 768
 
 [node name="GameUI" parent="." unique_id=1952053805 instance=ExtResource("9_game_ui")]
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1553348172]
+bus = &"Music"
+
+[node name="SFX" type="AudioStreamPlayer" parent="." unique_id=497166777]
+bus = &"SFX"
 
 [editable path="Player"]

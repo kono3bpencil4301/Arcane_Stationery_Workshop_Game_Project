@@ -103,11 +103,22 @@ public partial class CrispyPaperScrap : CharacterBody2D, IErasable
 
         Rotation += _spinSpeed * physicsDelta;
 
-        KinematicCollision2D collision =
-            MoveAndCollide(_direction * Speed * physicsDelta);
+        Vector2 intendedMotion = _direction * Speed * physicsDelta;
+        Vector2 motionStart = GlobalPosition;
+        KinematicCollision2D collision = MoveAndCollide(intendedMotion);
 
         if(collision == null)
             return;
+
+        if(EnemyProjectileTileCollision.IsFence(collision))
+        {
+            EnemyProjectileTileCollision.FinishMotionThroughFence(
+                this,
+                motionStart,
+                intendedMotion
+            );
+            return;
+        }
 
         Node collider = collision.GetCollider() as Node;
 

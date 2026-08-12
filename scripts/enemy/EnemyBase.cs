@@ -1,6 +1,6 @@
 using Godot;
 using System.Collections.Generic;
-
+using System;
 [GlobalClass]
 public partial class EnemyBase : CharacterBody2D, IDamageable
 {
@@ -80,6 +80,23 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     [Export(PropertyHint.Range, "0.05,3,0.05")]
     public float DamageNumberDuration = 0.75f;
 
+    [ExportCategory("Health Bar")]
+
+    [Export]
+    public bool ShowHealthBar = true;
+
+    [Export(PropertyHint.Range, "8,128,1")]
+    public float HealthBarLength = 32.0f;
+
+    [Export(PropertyHint.Range, "1,12,1")]
+    public float HealthBarThickness = 4.0f;
+
+    [Export(PropertyHint.Range, "0,32,1")]
+    public float HealthBarBottomPadding = 3.0f;
+
+    [Export]
+    public Vector2 HealthBarOffset = Vector2.Zero;
+
 
     [ExportCategory("Death")]
 
@@ -87,6 +104,20 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     [Export(PropertyHint.Range, "0,3,0.05")]
     public double DeathFadeDuration = 0.4;
 
+    [ExportCategory("Rewards")]
+
+    [Export(PropertyHint.Range, "0,999,1")]
+    public int MinimumInkCoinReward = 0;
+
+    [Export(PropertyHint.Range, "0,999,1")]
+    public int MaximumInkCoinReward = 0;
+
+    [ExportCategory("SFX")]
+
+    [Export]
+    public AudioStream[] EnemyHurtSFX = new AudioStream[0];
+    [Export]
+    public AudioStream EnemyDeathSFX;
 
     protected float CurrentHealth;
 
@@ -106,11 +137,14 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
 
     private Polygon2D _skillMarkVisual;
 
+    public EnemyHealthBar HealthBar { get; private set; }
+
 
     private float _contactAttackCooldownRemaining;
 
 
     private Vector2 _externalPushVelocity;
+    private readonly Random _rng = new Random();
 
 
     /// <summary>供特殊敌人状态机叠加玩家推力。</summary>
@@ -129,12 +163,13 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         AddToGroup("enemy");
 
         FindPlayer();
+        CreateHealthBar();
     }
 
 
     public override void _PhysicsProcess(double delta)
     {
-        if(IsDead)
+        if (IsDead)
             return;
 
         _contactAttackCooldownRemaining = Mathf.Max(
@@ -143,14 +178,14 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         );
 
 
-        if(!GodotObject.IsInstanceValid(Target))
+        if (!GodotObject.IsInstanceValid(Target))
         {
             Target = null;
             FindPlayer();
         }
 
 
-        if(Target != null)
+        if (Target != null)
         {
             MoveToTarget();
             TryContactAttack();
@@ -160,7 +195,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
             Velocity = _externalPushVelocity;
 
 
-            if(!Velocity.IsZeroApprox())
+            if (!Velocity.IsZeroApprox())
                 MoveAndSlide();
         }
 
@@ -178,7 +213,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     /// </summary>
     private void TryContactAttack()
     {
-        if(
+        if (
             !CanContactAttack() ||
             _contactAttackCooldownRemaining > 0.0f ||
             Target is not IDamageable damageable
@@ -191,7 +226,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         Vector2 hitDirection = GetContactHitDirection();
 
 
-        if(
+        if (
             GlobalPosition.DistanceSquaredTo(Target.GlobalPosition) >
             Mathf.Pow(Mathf.Max(ContactAttackRange, 1.0f), 2.0f)
         )
@@ -272,7 +307,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
 
         // 已经进入停止距离后，只保留切向或远离玩家的分离力。
         // 否则敌群互相排斥时，仍可能把最内侧敌人再次挤向玩家。
-        if(
+        if (
             targetDistance <= Mathf.Max(TargetStopDistance, 0.0f) &&
             !toTarget.IsZeroApprox()
         )
@@ -280,7 +315,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
             Vector2 towardTarget = toTarget.Normalized();
             float towardAmount = separationDirection.Dot(towardTarget);
 
-            if(towardAmount > 0.0f)
+            if (towardAmount > 0.0f)
             {
                 separationDirection -=
                     towardTarget * towardAmount;
@@ -296,7 +331,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         Vector2 pursuitVelocity = Vector2.Zero;
 
 
-        if(!movementDirection.IsZeroApprox())
+        if (!movementDirection.IsZeroApprox())
         {
             pursuitVelocity =
                 movementDirection.Normalized() *
@@ -308,7 +343,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         Velocity = pursuitVelocity + _externalPushVelocity;
 
 
-        if(Velocity.IsZeroApprox())
+        if (Velocity.IsZeroApprox())
             return;
 
 
@@ -321,7 +356,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     /// </summary>
     public void ApplyPlayerPush(Vector2 direction, float pushSpeed)
     {
-        if(
+        if (
             IsDead ||
             direction.IsZeroApprox() ||
             pushSpeed <= 0.0f ||
@@ -348,9 +383,9 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         Vector2 separation = Vector2.Zero;
 
 
-        foreach(Node node in GetTree().GetNodesInGroup("enemy"))
+        foreach (Node node in GetTree().GetNodesInGroup("enemy"))
         {
-            if(
+            if (
                 node == this ||
                 node is not Node2D otherEnemy ||
                 !GodotObject.IsInstanceValid(otherEnemy)
@@ -365,11 +400,11 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
             float distance = away.Length();
 
 
-            if(distance >= radius)
+            if (distance >= radius)
                 continue;
 
 
-            if(distance <= 0.001f)
+            if (distance <= 0.001f)
             {
                 // 完全重叠时给每个实例一个稳定方向，使它们能够脱离重叠。
                 float angle =
@@ -407,7 +442,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
             .GetFirstNodeInGroup("Player");
 
 
-        if(player is Node2D node)
+        if (player is Node2D node)
         {
             Target = node;
         }
@@ -420,7 +455,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     /// </summary>
     public bool RegisterSkillArea(SkillDamageArea area)
     {
-        if(
+        if (
             area == null ||
             !GodotObject.IsInstanceValid(area) ||
             !insideSkillAreas.Add(area)
@@ -438,7 +473,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
     /// <summary>由 SkillDamageArea 在敌人离开或区域销毁时调用。</summary>
     public void UnregisterSkillArea(SkillDamageArea area)
     {
-        if(area == null || !insideSkillAreas.Remove(area))
+        if (area == null || !insideSkillAreas.Remove(area))
             return;
 
 
@@ -455,9 +490,9 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         List<Node> invalidAreas = null;
 
 
-        foreach(Node node in insideSkillAreas)
+        foreach (Node node in insideSkillAreas)
         {
-            if(
+            if (
                 !GodotObject.IsInstanceValid(node) ||
                 node is not SkillDamageArea area
             )
@@ -475,9 +510,9 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         }
 
 
-        if(invalidAreas != null)
+        if (invalidAreas != null)
         {
-            foreach(Node node in invalidAreas)
+            foreach (Node node in invalidAreas)
                 insideSkillAreas.Remove(node);
         }
 
@@ -495,23 +530,23 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         DamageType? markType = null;
 
 
-        foreach(Node node in insideSkillAreas)
+        foreach (Node node in insideSkillAreas)
         {
-            if(node is not SkillDamageArea area)
+            if (node is not SkillDamageArea area)
                 continue;
 
 
             markType = area.DamageType;
 
 
-            if(area.DamageType == DamageType.ChalkDust)
+            if (area.DamageType == DamageType.ChalkDust)
                 break;
         }
 
 
-        if(markType == null)
+        if (markType == null)
         {
-            if(GodotObject.IsInstanceValid(_skillMarkVisual))
+            if (GodotObject.IsInstanceValid(_skillMarkVisual))
                 _skillMarkVisual.Visible = false;
 
 
@@ -519,7 +554,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         }
 
 
-        if(!GodotObject.IsInstanceValid(_skillMarkVisual))
+        if (!GodotObject.IsInstanceValid(_skillMarkVisual))
         {
             _skillMarkVisual = new Polygon2D
             {
@@ -556,11 +591,22 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         Vector2 hitDirection
     )
     {
-        if(IsDead || damage <= 0.0f)
+        if (IsDead || damage <= 0.0f)
             return;
 
 
         CurrentHealth -= damage;
+        RefreshHealthBar();
+
+        if (EnemyHurtSFX != null && EnemyHurtSFX.Length > 0)
+        {
+            int random = _rng.Next(EnemyHurtSFX.Length);
+            AudioStream hurtSFX = EnemyHurtSFX[random];
+
+            if (hurtSFX != null)
+                GetNode<AudioManager>("/root/AudioManager").PlaySFX(hurtSFX);
+        }
+
         FloatingDamageNumber.Spawn(
             this,
             damage,
@@ -581,7 +627,7 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         FlashDamage();
 
 
-        if(CurrentHealth <=0)
+        if (CurrentHealth <= 0)
         {
             Die();
         }
@@ -623,6 +669,70 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         // 后续做闪白
     }
 
+    protected void RefreshHealthBar()
+    {
+        HealthBar?.SetHealth(CurrentHealth, MaxHealth);
+    }
+
+    private void CreateHealthBar()
+    {
+        if (!ShowHealthBar)
+            return;
+
+        HealthBar = new EnemyHealthBar
+        {
+            Name = "EnemyHealthBar",
+            Position = ResolveHealthBarPosition(),
+            ZIndex = 50,
+            ZAsRelative = true
+        };
+        HealthBar.Configure(HealthBarLength, HealthBarThickness);
+        AddChild(HealthBar);
+        RefreshHealthBar();
+    }
+
+    private Vector2 ResolveHealthBarPosition()
+    {
+        AnimatedSprite2D sprite = GetNodeOrNull<AnimatedSprite2D>(
+            "AnimatedSprite2D"
+        );
+
+        if (
+            sprite?.SpriteFrames == null ||
+            !sprite.SpriteFrames.HasAnimation(sprite.Animation) ||
+            sprite.SpriteFrames.GetFrameCount(sprite.Animation) <= 0
+        )
+        {
+            return new Vector2(0.0f, 20.0f + HealthBarBottomPadding) +
+                HealthBarOffset;
+        }
+
+        int frameIndex = Mathf.Clamp(
+            sprite.Frame,
+            0,
+            sprite.SpriteFrames.GetFrameCount(sprite.Animation) - 1
+        );
+        Texture2D texture = sprite.SpriteFrames.GetFrameTexture(
+            sprite.Animation,
+            frameIndex
+        );
+        float spriteHeight = texture?.GetSize().Y ?? 32.0f;
+        float scaleY = Mathf.Abs(sprite.Scale.Y);
+        float scaleX = sprite.Scale.X;
+        Vector2 spriteOffset = new(
+            sprite.Offset.X * scaleX,
+            sprite.Offset.Y * scaleY
+        );
+        float bottom = sprite.Centered
+            ? spriteHeight * scaleY * 0.5f
+            : spriteHeight * scaleY;
+
+        return sprite.Position +
+            spriteOffset +
+            new Vector2(0.0f, bottom + HealthBarBottomPadding) +
+            HealthBarOffset;
+    }
+
 
 
     protected virtual void Die()
@@ -643,9 +753,9 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         CollisionMask = 0;
 
 
-        foreach(Node node in FindChildren("*", "CollisionShape2D", true, false))
+        foreach (Node node in FindChildren("*", "CollisionShape2D", true, false))
         {
-            if(node is CollisionShape2D collisionShape)
+            if (node is CollisionShape2D collisionShape)
             {
                 collisionShape.SetDeferred(
                     CollisionShape2D.PropertyName.Disabled,
@@ -659,8 +769,13 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
             $"{Name} Dead"
         );
 
+        if (EnemyDeathSFX != null)
+            GetNode<AudioManager>("/root/AudioManager").PlaySFX(EnemyDeathSFX);
 
-        if(DeathFadeDuration <= 0.0)
+        AwardInkCoins();
+
+
+        if (DeathFadeDuration <= 0.0)
         {
             QueueFree();
             return;
@@ -678,6 +793,42 @@ public partial class EnemyBase : CharacterBody2D, IDamageable
         );
         fadeTween.TweenCallback(
             Callable.From(QueueFree)
+        );
+    }
+
+    private void AwardInkCoins()
+    {
+        int minimum = Mathf.Max(MinimumInkCoinReward, 0);
+        int maximum = Mathf.Max(MaximumInkCoinReward, minimum);
+
+        if (maximum <= 0)
+            return;
+
+        Player player = Target as Player ??
+            GetTree().GetFirstNodeInGroup("player") as Player;
+        InkCoinWallet wallet = player?
+            .GetNodeOrNull<InkCoinWallet>("InkCoinWallet");
+
+        if (wallet == null)
+        {
+            GD.PushWarning($"{Name} 无法找到玩家的灵墨币钱包。");
+            return;
+        }
+
+        int reward = _rng.Next(minimum, maximum + 1);
+        int added = wallet.AddCoins(reward);
+
+        if (added <= 0)
+            return;
+
+        FloatingDamageNumber.SpawnMessage(
+            this,
+            $"灵墨币 +{added}",
+            UiPalette.ChargeGold.Lightened(0.25f),
+            new Vector2(0.0f, -42.0f),
+            24.0f,
+            0.9f,
+            13
         );
     }
 }

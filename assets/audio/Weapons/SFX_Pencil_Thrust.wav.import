@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://dpyak6a5tqlm1"
-path="res://.godot/imported/SFX_Pencil_Thrust.wav-0cd756eb81e794e7ab5f7b718cdf43ea.sample"
+uid="uid://bloapc5b4pvjv"
+path="res://.godot/imported/sfx_pencil_thrust.wav-793c8176abf75f61df0ce2786963b006.sample"
 
 [deps]
 
-source_file="res://assets/audio/Weapons/SFX_Pencil_Thrust.wav"
-dest_files=["res://.godot/imported/SFX_Pencil_Thrust.wav-0cd756eb81e794e7ab5f7b718cdf43ea.sample"]
+source_file="res://assets/audio/weapons/sfx_pencil_thrust.wav"
+dest_files=["res://.godot/imported/sfx_pencil_thrust.wav-793c8176abf75f61df0ce2786963b006.sample"]
 
 [params]
 

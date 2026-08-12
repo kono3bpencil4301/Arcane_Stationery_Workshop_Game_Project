@@ -48,6 +48,9 @@ public partial class TheMoldSpotFungus : EnemyBase
     public Texture2D WarningIconTexture { get; set; }
 
     [Export]
+    public AudioStream WarningSFX { get; set; }
+
+    [Export]
     public Vector2 WarningIconOffset { get; set; } = new(0.0f, -28.0f);
 
     [Export]
@@ -138,6 +141,7 @@ public partial class TheMoldSpotFungus : EnemyBase
     private float _pulseAngleOffset;
     private ulong _damageFlashVersion;
 
+
     public TheMoldSpotFungus()
     {
         MaxHealth = 40.0f;
@@ -145,6 +149,8 @@ public partial class TheMoldSpotFungus : EnemyBase
         ContactDamage = 10.0f;
         ContactAttackRange = 28.0f;
         TargetStopDistance = 26.0f;
+        MinimumInkCoinReward = 2;
+        MaximumInkCoinReward = 4;
     }
 
     public override void _Ready()
@@ -154,12 +160,12 @@ public partial class TheMoldSpotFungus : EnemyBase
         _animatedSprite =
             GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
 
-        if(GodotObject.IsInstanceValid(_animatedSprite))
+        if (GodotObject.IsInstanceValid(_animatedSprite))
         {
             _normalSpriteColor = _animatedSprite.Modulate;
             _isFacingLeft = _animatedSprite.FlipH;
 
-            if(
+            if (
                 _animatedSprite.SpriteFrames != null &&
                 _animatedSprite.SpriteFrames.HasAnimation(MoveAnimation)
             )
@@ -177,14 +183,14 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     public override void _PhysicsProcess(double delta)
     {
-        if(IsDead)
+        if (IsDead)
             return;
 
         float physicsDelta = (float)delta;
 
-        if(!_isSettled)
+        if (!_isSettled)
         {
-            if(!_settlementTargetResolved)
+            if (!_settlementTargetResolved)
                 ResolveSettlementTarget();
 
             MoveToSettlementTarget();
@@ -195,10 +201,10 @@ public partial class TheMoldSpotFungus : EnemyBase
         TryAwaken();
         base._PhysicsProcess(delta);
 
-        if(IsDead)
+        if (IsDead)
             return;
 
-        if(_isAwake)
+        if (_isAwake)
             UpdateSporePulse(physicsDelta);
 
         UpdatePollutionRegeneration(physicsDelta);
@@ -206,11 +212,11 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     protected override void MoveToTarget()
     {
-        if(!_isSettled || !_isAwake)
+        if (!_isSettled || !_isAwake)
         {
             Velocity = ExternalPushVelocity;
 
-            if(!Velocity.IsZeroApprox())
+            if (!Velocity.IsZeroApprox())
                 MoveAndSlide();
 
             return;
@@ -234,13 +240,13 @@ public partial class TheMoldSpotFungus : EnemyBase
     {
         base.TakeDamage(damage, source, hitPosition, hitDirection);
 
-        if(!IsDead && damage > 0.0f)
+        if (!IsDead && damage > 0.0f)
             Awaken();
     }
 
     private void TryAwaken()
     {
-        if(
+        if (
             !_isSettled ||
             _isAwake ||
             !GodotObject.IsInstanceValid(Target)
@@ -251,18 +257,19 @@ public partial class TheMoldSpotFungus : EnemyBase
 
         float radius = Mathf.Max(AwakeningRadius, 1.0f);
 
-        if(
+        if (
             GlobalPosition.DistanceSquaredTo(Target.GlobalPosition) <=
             radius * radius
         )
         {
             Awaken();
+
         }
     }
 
     private void Awaken()
     {
-        if(_isAwake || IsDead)
+        if (_isAwake || IsDead)
             return;
 
         // 玩家在途中直接攻击时立即中断停靠，进入正常战斗状态。
@@ -272,7 +279,23 @@ public partial class TheMoldSpotFungus : EnemyBase
         _sporePulseTimeRemaining =
             Mathf.Max(InitialSporePulseDelay, 0.0f);
         SpawnAwakeningWarning();
+
+        if(WarningSFX != null)
+        {
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?
+                .PlaySFX(WarningSFX);
+        }
     }
+
+
+    public void ForceAwaken()
+    {
+        if (IsDead)
+            return;
+
+        Awaken();
+    }
+
 
     private void ResolveSettlementTarget()
     {
@@ -287,17 +310,17 @@ public partial class TheMoldSpotFungus : EnemyBase
 
         // 程序化房间没有独立的 WorldBounds 节点，墙体碰撞来自 TileMapLayer。
         // 优先读取当前实际铺设区域，避免退回出生点附近的短距离分散逻辑。
-        if(currentScene != null)
+        if (currentScene != null)
             CollectTileMapBoundaryCandidates(currentScene);
 
-        if(_settlementCandidates.Count == 0 && worldBounds != null)
+        if (_settlementCandidates.Count == 0 && worldBounds != null)
             CollectWorldBoundaryCandidates(worldBounds);
 
         // 其他房间若没有 WorldBounds 约定，则退回扫描所有 World 碰撞节点。
-        if(_settlementCandidates.Count == 0 && currentScene != null)
+        if (_settlementCandidates.Count == 0 && currentScene != null)
             CollectWorldBoundaryCandidates(currentScene);
 
-        if(_settlementCandidates.Count == 0)
+        if (_settlementCandidates.Count == 0)
         {
             float fallbackAngle =
                 (GetInstanceId() % 360) * Mathf.Pi / 180.0f;
@@ -324,7 +347,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             false
         ) as TileMapLayer;
 
-        if(
+        if (
             !GodotObject.IsInstanceValid(groundLayer) ||
             groundLayer.TileSet == null
         )
@@ -339,7 +362,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             false
         ) as DungeonGenerator;
 
-        if(
+        if (
             GodotObject.IsInstanceValid(dungeonGenerator) &&
             dungeonGenerator.TryGetRoomAtGlobalPosition(
                 GlobalPosition,
@@ -356,7 +379,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             usedRect = groundLayer.GetUsedRect();
         }
 
-        if(usedRect.Size.X < 3 || usedRect.Size.Y < 3)
+        if (usedRect.Size.X < 3 || usedRect.Size.Y < 3)
             return;
 
         Vector2I topLeftCell = usedRect.Position;
@@ -378,7 +401,7 @@ public partial class TheMoldSpotFungus : EnemyBase
         float right = bottomRightCenter.X - halfTileSize.X;
         float bottom = bottomRightCenter.Y - halfTileSize.Y;
 
-        if(right <= left || bottom <= top)
+        if (right <= left || bottom <= top)
             return;
 
         Vector2 topLeft = groundLayer.ToGlobal(new Vector2(left, top));
@@ -394,7 +417,7 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void CollectWorldBoundaryCandidates(Node searchRoot)
     {
-        foreach(
+        foreach (
             Node node in searchRoot.FindChildren(
                 "*",
                 "CollisionShape2D",
@@ -403,7 +426,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             )
         )
         {
-            if(
+            if (
                 node is not CollisionShape2D collisionShape ||
                 collisionShape.Disabled ||
                 collisionShape.GetParent() is not CollisionObject2D owner ||
@@ -413,7 +436,7 @@ public partial class TheMoldSpotFungus : EnemyBase
                 continue;
             }
 
-            switch(collisionShape.Shape)
+            switch (collisionShape.Shape)
             {
                 case SegmentShape2D segmentShape:
                     AddSegmentSettlementCandidates(
@@ -446,7 +469,7 @@ public partial class TheMoldSpotFungus : EnemyBase
         Vector2 segment = to - from;
         float length = segment.Length();
 
-        if(length <= 0.001f)
+        if (length <= 0.001f)
             return;
 
         Vector2 along = segment / length;
@@ -454,7 +477,7 @@ public partial class TheMoldSpotFungus : EnemyBase
         float spacing = Mathf.Max(SettlementSlotSpacing, 1.0f);
         float maximumOffset = length * 0.4f;
 
-        for(int slot = 0; slot < slotCount; slot++)
+        for (int slot = 0; slot < slotCount; slot++)
         {
             float offset = Mathf.Min(slot * spacing, maximumOffset);
             AddWallPointCandidate(from + along * offset);
@@ -466,16 +489,16 @@ public partial class TheMoldSpotFungus : EnemyBase
     {
         Vector2 inwardDirection = wallPoint.DirectionTo(GlobalPosition);
 
-        if(inwardDirection.IsZeroApprox())
+        if (inwardDirection.IsZeroApprox())
             inwardDirection = Vector2.One.Normalized();
 
         Vector2 candidate = wallPoint +
             inwardDirection * Mathf.Max(SettlementWallClearance, 4.0f);
         float minimumDuplicateDistanceSquared = 4.0f * 4.0f;
 
-        foreach(Vector2 existing in _settlementCandidates)
+        foreach (Vector2 existing in _settlementCandidates)
         {
-            if(
+            if (
                 existing.DistanceSquaredTo(candidate) <=
                 minimumDuplicateDistanceSquared
             )
@@ -492,14 +515,14 @@ public partial class TheMoldSpotFungus : EnemyBase
         Vector2 bestCandidate = _settlementCandidates[0];
         float bestScore = float.NegativeInfinity;
 
-        foreach(Vector2 candidate in _settlementCandidates)
+        foreach (Vector2 candidate in _settlementCandidates)
         {
             float minimumOtherDistanceSquared = float.PositiveInfinity;
             bool foundOtherFungus = false;
 
-            foreach(Node node in GetTree().GetNodesInGroup("enemy"))
+            foreach (Node node in GetTree().GetNodesInGroup("enemy"))
             {
-                if(
+                if (
                     node == this ||
                     node is not TheMoldSpotFungus other ||
                     !GodotObject.IsInstanceValid(other)
@@ -525,7 +548,7 @@ public partial class TheMoldSpotFungus : EnemyBase
                 ? minimumOtherDistanceSquared - travelDistanceSquared * 0.05f
                 : -travelDistanceSquared;
 
-            if(score <= bestScore)
+            if (score <= bestScore)
                 continue;
 
             bestScore = score;
@@ -537,14 +560,14 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void MoveToSettlementTarget()
     {
-        if(!_settlementTargetResolved)
+        if (!_settlementTargetResolved)
             return;
 
         Vector2 toTarget = _settlementTarget - GlobalPosition;
         float arrivalDistance =
             Mathf.Max(SettlementArrivalDistance, 1.0f);
 
-        if(toTarget.LengthSquared() <= arrivalDistance * arrivalDistance)
+        if (toTarget.LengthSquared() <= arrivalDistance * arrivalDistance)
         {
             CompleteSettlement();
             return;
@@ -554,7 +577,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             CalculateEnemySeparation() *
             Mathf.Max(SettlementSeparationStrength, 0.0f);
 
-        if(movementDirection.IsZeroApprox())
+        if (movementDirection.IsZeroApprox())
             movementDirection = toTarget.Normalized();
 
         Velocity = movementDirection.Normalized() *
@@ -565,7 +588,7 @@ public partial class TheMoldSpotFungus : EnemyBase
         MoveAndSlide();
         UpdateFacingFromDirection(toTarget);
 
-        if(
+        if (
             GlobalPosition.DistanceSquaredTo(_settlementTarget) <=
             arrivalDistance * arrivalDistance
         )
@@ -584,7 +607,7 @@ public partial class TheMoldSpotFungus : EnemyBase
     {
         _sporePulseTimeRemaining -= delta;
 
-        if(_sporePulseTimeRemaining > 0.0f)
+        if (_sporePulseTimeRemaining > 0.0f)
             return;
 
         SpawnSporePulse();
@@ -594,31 +617,31 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void SpawnSporePulse()
     {
-        if(SporeScene == null || !IsInsideTree())
+        if (SporeScene == null || !IsInsideTree())
             return;
 
         Node parent = GetTree().CurrentScene ?? GetParent();
 
-        if(parent == null)
+        if (parent == null)
             return;
 
         int count = Mathf.Max(SporeCount, 1);
         float step = Mathf.Tau / count;
         float startAngle = _pulseAngleOffset;
 
-        if(GodotObject.IsInstanceValid(Target))
+        if (GodotObject.IsInstanceValid(Target))
         {
             Vector2 toTarget = Target.GlobalPosition - GlobalPosition;
 
-            if(!toTarget.IsZeroApprox())
+            if (!toTarget.IsZeroApprox())
                 startAngle += toTarget.Angle();
         }
 
-        for(int index = 0; index < count; index++)
+        for (int index = 0; index < count; index++)
         {
             Node instance = SporeScene.Instantiate();
 
-            if(instance is not MoldSporeProjectile spore)
+            if (instance is not MoldSporeProjectile spore)
             {
                 instance?.QueueFree();
                 GD.PushWarning(
@@ -657,7 +680,7 @@ public partial class TheMoldSpotFungus : EnemyBase
         _regenerationAccumulator += delta;
         float interval = Mathf.Max(RegenerationInterval, 0.1f);
 
-        if(_regenerationAccumulator < interval)
+        if (_regenerationAccumulator < interval)
             return;
 
         _regenerationAccumulator = Mathf.PosMod(
@@ -665,10 +688,10 @@ public partial class TheMoldSpotFungus : EnemyBase
             interval
         );
 
-        if(!GodotObject.IsInstanceValid(_pollutionField))
+        if (!GodotObject.IsInstanceValid(_pollutionField))
             ResolvePollutionField();
 
-        if(
+        if (
             !GodotObject.IsInstanceValid(_pollutionField) ||
             CurrentHealth >= MaxHealth ||
             !_pollutionField.HasPollutionNear(
@@ -685,10 +708,11 @@ public partial class TheMoldSpotFungus : EnemyBase
             MaxHealth - CurrentHealth
         );
 
-        if(healedAmount <= 0.0f)
+        if (healedAmount <= 0.0f)
             return;
 
         CurrentHealth += healedAmount;
+        RefreshHealthBar();
         FloatingDamageNumber.SpawnHealing(
             this,
             healedAmount,
@@ -704,7 +728,7 @@ public partial class TheMoldSpotFungus : EnemyBase
     {
         Node currentScene = GetTree()?.CurrentScene;
 
-        if(currentScene == null)
+        if (currentScene == null)
         {
             _pollutionField = null;
             return;
@@ -719,7 +743,7 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void UpdateFacingDirection()
     {
-        if(
+        if (
             !GodotObject.IsInstanceValid(_animatedSprite) ||
             !GodotObject.IsInstanceValid(Target)
         )
@@ -735,7 +759,7 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void UpdateFacingFromDirection(Vector2 direction)
     {
-        if(
+        if (
             !GodotObject.IsInstanceValid(_animatedSprite) ||
             Mathf.Abs(direction.X) <= Mathf.Max(FacingDeadZone, 0.0f)
         )
@@ -745,7 +769,7 @@ public partial class TheMoldSpotFungus : EnemyBase
 
         bool shouldFaceLeft = direction.X < 0.0f;
 
-        if(shouldFaceLeft == _isFacingLeft)
+        if (shouldFaceLeft == _isFacingLeft)
             return;
 
         _isFacingLeft = shouldFaceLeft;
@@ -754,12 +778,12 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     private void SpawnAwakeningWarning()
     {
-        if(WarningIconTexture == null || !IsInsideTree())
+        if (WarningIconTexture == null || !IsInsideTree())
             return;
 
         Node parent = GetTree().CurrentScene ?? GetParent();
 
-        if(parent == null)
+        if (parent == null)
             return;
 
         Sprite2D warningIcon = new()
@@ -800,13 +824,13 @@ public partial class TheMoldSpotFungus : EnemyBase
 
     protected override void FlashDamage()
     {
-        if(!GodotObject.IsInstanceValid(_animatedSprite))
+        if (!GodotObject.IsInstanceValid(_animatedSprite))
         {
             _animatedSprite =
                 GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         }
 
-        if(!GodotObject.IsInstanceValid(_animatedSprite))
+        if (!GodotObject.IsInstanceValid(_animatedSprite))
             return;
 
         ulong flashVersion = ++_damageFlashVersion;
@@ -816,7 +840,7 @@ public partial class TheMoldSpotFungus : EnemyBase
             .CreateTimer(Mathf.Max(DamageFlashDuration, 0.01))
             .Timeout += () =>
             {
-                if(
+                if (
                     flashVersion != _damageFlashVersion ||
                     !GodotObject.IsInstanceValid(_animatedSprite)
                 )

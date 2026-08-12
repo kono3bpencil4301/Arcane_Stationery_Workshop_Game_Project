@@ -26,6 +26,9 @@ public abstract partial class WeaponBase :
     [Export]
     public PackedScene SkillDamageAreaScene { get; set; }
 
+    [Export]
+    public AudioStream SkillLoopSFX { get; set; }
+
     public WeaponInstance Instance { get; private set; } = null!;
 
     public WeaponData Data => Instance.Data;
@@ -43,6 +46,8 @@ public abstract partial class WeaponBase :
     private bool _isUsingPaintSkill;
     private bool _paintSkillChargeConsumedOnBegin;
     private SharedSkillCharge _sharedSkillCharge;
+    private AudioStreamPlayer _skillLoopPlayer;
+    private bool _skillLoopRequested;
 
     /// <summary>
     /// 实时生效的技能需要在开始时消耗充能，避免通过短划或取消无限使用。
@@ -180,6 +185,8 @@ public abstract partial class WeaponBase :
 
         _isUsingPaintSkill = true;
         SetExternalAttackBlocked(true);
+
+        StartSkillLoopSFX();
         OnPaintSkillStarted();
     }
 
@@ -203,6 +210,9 @@ public abstract partial class WeaponBase :
         _paintSkillChargeConsumedOnBegin = false;
         SetExternalAttackBlocked(false);
 
+        StopSkillLoopSFX();
+
+
         GD.Print(
             $"{Data.DisplayName}绘制完成：长度 {result.TotalLength:F1}，" +
             $"持续 {result.Duration:F2} 秒，" +
@@ -211,6 +221,7 @@ public abstract partial class WeaponBase :
 
         OnPaintSkillCommitted(result);
     }
+
 
     public void CancelPaint()
     {
@@ -221,6 +232,8 @@ public abstract partial class WeaponBase :
         _isUsingPaintSkill = false;
         _paintSkillChargeConsumedOnBegin = false;
         SetExternalAttackBlocked(false);
+
+        StopSkillLoopSFX();
 
         if (shouldStartCooldown)
             StartSkillCooldown();
@@ -248,7 +261,7 @@ public abstract partial class WeaponBase :
         PaintStrokeResult result
     )
     {
-        if(SkillDamageAreaScene == null || result == null)
+        if (SkillDamageAreaScene == null || result == null)
         {
             GD.PushWarning(
                 $"{Name} 没有配置 SkillDamageAreaScene。"
@@ -260,7 +273,7 @@ public abstract partial class WeaponBase :
         Node instance = SkillDamageAreaScene.Instantiate();
 
 
-        if(instance is not SkillDamageArea skillArea)
+        if (instance is not SkillDamageArea skillArea)
         {
             GD.PushError(
                 $"{Name} 的技能场景根节点必须继承 SkillDamageArea。"
@@ -286,9 +299,9 @@ public abstract partial class WeaponBase :
         Node ancestor = GetParent();
 
 
-        while(ancestor != null)
+        while (ancestor != null)
         {
-            if(ancestor is CharacterBody2D)
+            if (ancestor is CharacterBody2D)
                 return ancestor;
 
 
@@ -372,6 +385,59 @@ public abstract partial class WeaponBase :
         Visible = IsSelected || Data.ShowVisualWhenUnselected;
     }
 
+    private void EnsureSkillLoopPlayer()
+    {
+        if (GodotObject.IsInstanceValid(_skillLoopPlayer))
+            return;
 
+        _skillLoopPlayer = new AudioStreamPlayer
+        {
+            Name = "SkillLoopSFXPlayer",
+            Bus = "SFX",
+            ProcessMode = ProcessModeEnum.Always
+        };
+
+        AddChild(_skillLoopPlayer);
+
+        _skillLoopPlayer.Finished +=
+            OnSkillLoopSFXFinished;
+    }
+    private void StartSkillLoopSFX()
+    {
+        if (SkillLoopSFX == null)
+            return;
+
+        EnsureSkillLoopPlayer();
+
+        _skillLoopRequested = true;
+        _skillLoopPlayer.Stream = SkillLoopSFX;
+        _skillLoopPlayer.Play();
+    }
+
+    private void OnSkillLoopSFXFinished()
+    {
+        if (
+            !_skillLoopRequested ||
+            !_isUsingPaintSkill ||
+            !GodotObject.IsInstanceValid(_skillLoopPlayer) ||
+            _skillLoopPlayer.Stream == null
+        )
+        {
+            return;
+        }
+
+        _skillLoopPlayer.Play();
+    }
+
+    private void StopSkillLoopSFX()
+    {
+        _skillLoopRequested = false;
+
+        if (!GodotObject.IsInstanceValid(_skillLoopPlayer))
+            return;
+
+        _skillLoopPlayer.Stop();
+        _skillLoopPlayer.Stream = null;
+    }
 
 }

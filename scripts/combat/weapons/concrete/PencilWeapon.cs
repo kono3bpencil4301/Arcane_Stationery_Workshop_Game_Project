@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 public partial class PencilWeapon : WeaponBase
 {
+    [ExportCategory("SFX")]
+
+    [Export]
+    public AudioStream PencilThrustSFX;
+
     
     [Export]
     public float pencilThrustRange = 100.0f; // 铅笔 thrust 范围
@@ -110,6 +115,12 @@ public partial class PencilWeapon : WeaponBase
         hitEnemyIds.Clear();
         currentState = PencilState.Thrust;
         pencilThrustDistance = 0.0f;
+
+        if (PencilThrustSFX != null)
+        {
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?
+                .PlaySFX(PencilThrustSFX);
+        }
     }
 
     private void OnHitAreaBodyEntered(Node2D body)

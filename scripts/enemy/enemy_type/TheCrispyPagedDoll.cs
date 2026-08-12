@@ -85,6 +85,9 @@ public partial class TheCrispyPagedDoll : EnemyBase
     public Texture2D WarningIconTexture;
 
     [Export]
+    public AudioStream WarningSFX;
+
+    [Export]
     public Vector2 WarningIconOffset = new(0.0f, -38.0f);
 
     [Export]
@@ -100,16 +103,16 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     /// <summary>死亡时触发碎纸爆炸的概率，0 为关闭、1 为必定触发。</summary>
     [Export(PropertyHint.Range, "0,1,0.05")]
-    public float ExplosionChance = 0.5f;
+    public float ExplosionChance = 0.75f;
 
     [Export]
     public PackedScene PaperScrapScene;
 
-    [Export(PropertyHint.Range, "3,5,1")]
-    public int MinimumScrapCount = 3;
+    [Export(PropertyHint.Range, "3,8,1")]
+    public int MinimumScrapCount = 5;
 
-    [Export(PropertyHint.Range, "3,5,1")]
-    public int MaximumScrapCount = 5;
+    [Export(PropertyHint.Range, "3,8,1")]
+    public int MaximumScrapCount = 7;
 
     [Export(PropertyHint.Range, "0,1000,0.5")]
     public float ScrapDamage = 5.0f;
@@ -118,7 +121,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
     public float ScrapSpeed = 180.0f;
 
     [Export(PropertyHint.Range, "0.05,10,0.05")]
-    public float ScrapLifetime = 0.75f;
+    public float ScrapLifetime = 1.5f;
 
     [Export(PropertyHint.Range, "0,64,1")]
     public float ScrapSpawnRadius = 12.0f;
@@ -130,6 +133,12 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     [Export(PropertyHint.Range, "0.01,1,0.01")]
     public double DamageFlashDuration = 0.05;
+
+    /// <summary>
+    /// 冲刺路线被墙或栅栏阻挡后，多久重新检查一次。
+    /// </summary>
+    [Export(PropertyHint.Range, "0.1,2,0.05")]
+    public float BlockedChargeRetryDuration = 0.4f;
 
     private AnimatedSprite2D _animatedSprite;
     private Polygon2D _exposedCoreVisual;
@@ -150,6 +159,8 @@ public partial class TheCrispyPagedDoll : EnemyBase
         // 脆页偶比墨团更脆但移动更快；场景 Inspector 中保存的值仍可覆盖它们。
         MaxHealth = 30f;
         MoveSpeed = 80f;
+        MinimumInkCoinReward = 2;
+        MaximumInkCoinReward = 5;
     }
 
     public override void _Ready()
@@ -162,7 +173,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
             GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         _normalEnemyCollisionEnabled = GetCollisionMaskValue(3);
 
-        if(_animatedSprite != null)
+        if (_animatedSprite != null)
         {
             // 固定保存正常状态，避免连续受击或状态切换累积缩放、颜色。
             _normalSpriteColor = _animatedSprite.Modulate;
@@ -182,7 +193,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     protected override void MoveToTarget()
     {
-        switch(_state)
+        switch (_state)
         {
             case ChargeState.Positioning:
                 UpdatePositioning();
@@ -217,7 +228,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         float tolerance = Mathf.Max(ObservationDistanceTolerance, 0.0f);
         float distance = GlobalPosition.DistanceTo(Target.GlobalPosition);
 
-        if(Mathf.Abs(distance - ObservationDistance) <= tolerance)
+        if (Mathf.Abs(distance - ObservationDistance) <= tolerance)
             EnterObserving();
     }
 
@@ -227,8 +238,20 @@ public partial class TheCrispyPagedDoll : EnemyBase
         MoveAtObservationDistance();
         _stateTimeRemaining -= _physicsDelta;
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining > 0.0f)
+            return;
+
+        if (HasClearChargePathToPlayer())
+        {
             EnterWindup();
+            return;
+        }
+
+        // 玩家一开始就在墙或栅栏后方，暂时不冲刺。
+        _stateTimeRemaining = Mathf.Max(
+            BlockedChargeRetryDuration,
+            0.1f
+        );
     }
 
     private void MoveAtObservationDistance()
@@ -239,11 +262,11 @@ public partial class TheCrispyPagedDoll : EnemyBase
         float tolerance = Mathf.Max(ObservationDistanceTolerance, 0.0f);
         Vector2 rangeDirection = Vector2.Zero;
 
-        if(!toTarget.IsZeroApprox())
+        if (!toTarget.IsZeroApprox())
         {
-            if(distance > targetDistance + tolerance)
+            if (distance > targetDistance + tolerance)
                 rangeDirection = toTarget.Normalized();
-            else if(distance < Mathf.Max(targetDistance - tolerance, 0.0f))
+            else if (distance < Mathf.Max(targetDistance - tolerance, 0.0f))
                 rangeDirection = -toTarget.Normalized();
         }
 
@@ -253,7 +276,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         Vector2 movementVelocity = Vector2.Zero;
 
-        if(!movementDirection.IsZeroApprox())
+        if (!movementDirection.IsZeroApprox())
         {
             movementVelocity =
                 movementDirection.Normalized() *
@@ -263,7 +286,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         Velocity = movementVelocity + ExternalPushVelocity;
 
-        if(!Velocity.IsZeroApprox())
+        if (!Velocity.IsZeroApprox())
             MoveAndSlide();
 
         UpdateFacingDirection();
@@ -283,14 +306,17 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         Vector2 toTarget = Target.GlobalPosition - GlobalPosition;
 
-        if(!toTarget.IsZeroApprox())
+        if (!toTarget.IsZeroApprox())
             _lockedChargeDirection = toTarget.Normalized();
 
         SetFacingFromDirection(_lockedChargeDirection);
         HideExposedCore();
         SpawnChargeWarning();
 
-        if(HasAnimation(ChargeAnimation))
+        if (WarningSFX != null)
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySFX(WarningSFX);
+
+        if (HasAnimation(ChargeAnimation))
         {
             _animatedSprite.Play(ChargeAnimation);
             _animatedSprite.Pause();
@@ -304,7 +330,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         Velocity = Vector2.Zero;
         _stateTimeRemaining -= _physicsDelta;
 
-        if(GodotObject.IsInstanceValid(_animatedSprite))
+        if (GodotObject.IsInstanceValid(_animatedSprite))
         {
             float duration = Mathf.Max(ChargeWindupDuration, 0.05f);
             float progress = Mathf.Clamp(
@@ -318,9 +344,10 @@ public partial class TheCrispyPagedDoll : EnemyBase
                 _normalSpriteScale.Lerp(foldedScale, progress);
         }
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining <= 0.0f)
             EnterCharging();
     }
+
 
     private void EnterCharging()
     {
@@ -331,11 +358,11 @@ public partial class TheCrispyPagedDoll : EnemyBase
         // 冲锋期间忽略其他敌人，防止碰撞滑动改变已锁定的直线路径。
         SetCollisionMaskValue(3, false);
 
-        if(GodotObject.IsInstanceValid(_animatedSprite))
+        if (GodotObject.IsInstanceValid(_animatedSprite))
         {
             _animatedSprite.Scale = _normalSpriteScale;
 
-            if(HasAnimation(ChargeAnimation))
+            if (HasAnimation(ChargeAnimation))
                 _animatedSprite.Play(ChargeAnimation);
         }
     }
@@ -352,19 +379,19 @@ public partial class TheCrispyPagedDoll : EnemyBase
         KinematicCollision2D collision =
             MoveAndCollide(Velocity * _physicsDelta);
 
-        if(collision != null)
+        if (collision != null)
         {
             Node collider = collision.GetCollider() as Node;
 
             // 玩家伤害由 EnemyBase 的统一接触伤害入口处理。
-            if(IsPlayerCollider(collider))
+            if (IsPlayerCollider(collider))
                 return;
 
-            if(IsWallCollider(collider))
+            if (IsWallCollider(collider))
             {
                 ApplyWallImpactDamage();
 
-                if(!IsDead)
+                if (!IsDead)
                     EnterStunned();
 
                 return;
@@ -375,7 +402,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
             return;
         }
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining <= 0.0f)
             EnterRecovering();
     }
 
@@ -396,7 +423,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     protected override void OnContactAttackLanded()
     {
-        if(_state == ChargeState.Charging)
+        if (_state == ChargeState.Charging)
             EnterRecovering();
     }
 
@@ -409,7 +436,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         RestoreMovementVisual();
         UpdateFacingDirection();
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining <= 0.0f)
             EnterPositioning();
     }
 
@@ -419,7 +446,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         UpdateFacingDirection();
         _stateTimeRemaining -= _physicsDelta;
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining <= 0.0f)
             EnterPositioning();
     }
 
@@ -431,7 +458,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         Velocity = Vector2.Zero;
         PlayStunnedVisual();
 
-        if(GodotObject.IsInstanceValid(_exposedCoreVisual))
+        if (GodotObject.IsInstanceValid(_exposedCoreVisual))
             _exposedCoreVisual.Visible = true;
     }
 
@@ -440,7 +467,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         Velocity = Vector2.Zero;
         _stateTimeRemaining -= _physicsDelta;
 
-        if(_stateTimeRemaining <= 0.0f)
+        if (_stateTimeRemaining <= 0.0f)
             EnterPositioning();
     }
 
@@ -459,7 +486,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
     /// </summary>
     private void UpdateFacingDirection()
     {
-        if(
+        if (
             !GodotObject.IsInstanceValid(_animatedSprite) ||
             !GodotObject.IsInstanceValid(Target)
         )
@@ -470,7 +497,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         float horizontalDistance =
             Target.GlobalPosition.X - GlobalPosition.X;
 
-        if(Mathf.Abs(horizontalDistance) <= Mathf.Max(FacingDeadZone, 0.0f))
+        if (Mathf.Abs(horizontalDistance) <= Mathf.Max(FacingDeadZone, 0.0f))
             return;
 
         SetFacingFromDirection(new Vector2(horizontalDistance, 0.0f));
@@ -478,7 +505,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private void SetFacingFromDirection(Vector2 direction)
     {
-        if(
+        if (
             !GodotObject.IsInstanceValid(_animatedSprite) ||
             Mathf.Abs(direction.X) <= 0.001f
         )
@@ -488,7 +515,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         bool shouldFaceLeft = direction.X < 0.0f;
 
-        if(shouldFaceLeft == _isFacingLeft)
+        if (shouldFaceLeft == _isFacingLeft)
             return;
 
         _isFacingLeft = shouldFaceLeft;
@@ -505,12 +532,12 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private void RestoreMovementVisual()
     {
-        if(!GodotObject.IsInstanceValid(_animatedSprite))
+        if (!GodotObject.IsInstanceValid(_animatedSprite))
             return;
 
         RestoreSpriteProperties();
 
-        if(HasAnimation(MoveAnimation))
+        if (HasAnimation(MoveAnimation))
         {
             _animatedSprite.Play(MoveAnimation);
         }
@@ -524,12 +551,12 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private void PlayStunnedVisual()
     {
-        if(!GodotObject.IsInstanceValid(_animatedSprite))
+        if (!GodotObject.IsInstanceValid(_animatedSprite))
             return;
 
         RestoreSpriteProperties();
 
-        if(HasAnimation(DizzyAnimation))
+        if (HasAnimation(DizzyAnimation))
         {
             _animatedSprite.Play(DizzyAnimation);
         }
@@ -552,7 +579,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
     {
         float damage = Mathf.Max(WallImpactDamage, 0.0f);
 
-        if(damage <= 0.0f)
+        if (damage <= 0.0f)
             return;
 
         TakeDamage(
@@ -565,7 +592,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private void SpawnChargeWarning()
     {
-        if(
+        if (
             WarningIconTexture == null ||
             !IsInsideTree()
         )
@@ -575,7 +602,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         Node parent = GetTree().CurrentScene ?? GetParent();
 
-        if(parent == null)
+        if (parent == null)
             return;
 
         Sprite2D warningIcon = new()
@@ -636,7 +663,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private void HideExposedCore()
     {
-        if(GodotObject.IsInstanceValid(_exposedCoreVisual))
+        if (GodotObject.IsInstanceValid(_exposedCoreVisual))
             _exposedCoreVisual.Visible = false;
     }
 
@@ -658,7 +685,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     private static bool IsWallCollider(Node collider)
     {
-        if(collider is StaticBody2D || collider is TileMapLayer)
+        if (collider is StaticBody2D || collider is TileMapLayer)
             return true;
 
         return
@@ -668,13 +695,13 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
     protected override void FlashDamage()
     {
-        if(!GodotObject.IsInstanceValid(_animatedSprite))
+        if (!GodotObject.IsInstanceValid(_animatedSprite))
         {
             _animatedSprite =
                 GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         }
 
-        if(_animatedSprite == null)
+        if (_animatedSprite == null)
             return;
 
         ulong flashVersion = ++_damageFlashVersion;
@@ -685,7 +712,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
             .Timeout += () =>
             {
                 // 连续受击时只允许最后一次计时恢复颜色。
-                if(
+                if (
                     flashVersion != _damageFlashVersion ||
                     !GodotObject.IsInstanceValid(_animatedSprite)
                 )
@@ -702,18 +729,17 @@ public partial class TheCrispyPagedDoll : EnemyBase
         RestoreEnemyCollisionMask();
         HideExposedCore();
         TrySpawnDeathExplosion();
-        DropMaterial();
         base.Die();
     }
 
     private void TrySpawnDeathExplosion()
     {
-        if(_deathExplosionResolved)
+        if (_deathExplosionResolved)
             return;
 
         _deathExplosionResolved = true;
 
-        if(
+        if (
             PaperScrapScene == null ||
             _explosionRandom.Randf() >
                 Mathf.Clamp(ExplosionChance, 0.0f, 1.0f)
@@ -724,13 +750,13 @@ public partial class TheCrispyPagedDoll : EnemyBase
 
         Node parent = GetTree().CurrentScene ?? GetParent();
 
-        if(parent == null)
+        if (parent == null)
             return;
 
-        int minimumCount = Mathf.Clamp(MinimumScrapCount, 3, 5);
-        int maximumCount = Mathf.Clamp(MaximumScrapCount, 3, 5);
+        int minimumCount = Mathf.Clamp(MinimumScrapCount, 3, 8);
+        int maximumCount = Mathf.Clamp(MaximumScrapCount, 3, 8);
 
-        if(minimumCount > maximumCount)
+        if (minimumCount > maximumCount)
             (minimumCount, maximumCount) = (maximumCount, minimumCount);
 
         int scrapCount = _explosionRandom.RandiRange(
@@ -741,7 +767,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
         float startAngle = _explosionRandom.RandfRange(0.0f, Mathf.Tau);
         float spawnRadius = Mathf.Max(ScrapSpawnRadius, 0.0f);
 
-        for(int index = 0; index < scrapCount; index++)
+        for (int index = 0; index < scrapCount; index++)
         {
             float angleJitter = _explosionRandom.RandfRange(
                 -angleStep * 0.12f,
@@ -752,7 +778,7 @@ public partial class TheCrispyPagedDoll : EnemyBase
             );
             Node instance = PaperScrapScene.Instantiate();
 
-            if(instance is not CrispyPaperScrap scrap)
+            if (instance is not CrispyPaperScrap scrap)
             {
                 GD.PushWarning(
                     $"{Name} 的 PaperScrapScene 根节点必须使用 CrispyPaperScrap。"
@@ -776,20 +802,34 @@ public partial class TheCrispyPagedDoll : EnemyBase
             // 因此将 AddChild 延迟，并在入树后再设置全局坐标。
             scrap.TreeEntered += () =>
             {
-                if(GodotObject.IsInstanceValid(scrap))
+                if (GodotObject.IsInstanceValid(scrap))
                     scrap.GlobalPosition = scrapSpawnPosition;
             };
             parent.CallDeferred(Node.MethodName.AddChild, scrap);
         }
     }
 
-    private void DropMaterial()
+    private bool HasClearChargePathToPlayer()
     {
-        GD.Print("Drop: 脆裂纸灰");
+        if (!GodotObject.IsInstanceValid(Target) || GetWorld2D() == null)
+        {
+            return false;
+        }
 
-        /*
-        后续:
-        生成掉落物
-        */
+        PhysicsRayQueryParameters2D query = PhysicsRayQueryParameters2D.Create(GlobalPosition, Target.GlobalPosition);
+        query.CollisionMask = 1u;
+        query.CollideWithBodies = true;
+        query.CollideWithAreas = false;
+        query.Exclude = new Godot.Collections.Array<Rid>
+        {
+            GetRid()
+        };
+
+        Godot.Collections.Dictionary result = GetWorld2D()
+                .DirectSpaceState
+                .IntersectRay(query);
+
+        return result.Count == 0;
+
     }
 }

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://pff24ugv6t32"
-path="res://.godot/imported/SFX_UI_Hover.wav-8ad825e0909a8c8ca050f845a58a1748.sample"
+uid="uid://d14i5048pubrf"
+path="res://.godot/imported/sfx_ui_hover.wav-7154c0df0733b63a2fc87e6a2755f1c5.sample"
 
 [deps]
 
-source_file="res://assets/audio/UI/SFX_UI_Hover.wav"
-dest_files=["res://.godot/imported/SFX_UI_Hover.wav-8ad825e0909a8c8ca050f845a58a1748.sample"]
+source_file="res://assets/audio/ui/sfx_ui_hover.wav"
+dest_files=["res://.godot/imported/sfx_ui_hover.wav-7154c0df0733b63a2fc87e6a2755f1c5.sample"]
 
 [params]
 

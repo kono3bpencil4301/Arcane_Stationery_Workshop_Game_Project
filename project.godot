@@ -15,6 +15,14 @@ run/main_scene="uid://g1netkchghlt"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://c587b75lr0kt7"
+
+[autoload]
+
+AudioManager="*uid://bbesmxtx50sh8"
+
 [display]
 
 window/size/viewport_width=960

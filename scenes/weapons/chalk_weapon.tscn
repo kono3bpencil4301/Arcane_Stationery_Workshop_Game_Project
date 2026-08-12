@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://cfsthch3svdar" path="res://assets/weapon/chalk/chalk_normal.png" id="1_rfp0q"]
 [ext_resource type="PackedScene" uid="uid://cmudj6jbmvdqy" path="res://scenes/weapons/chalk_weapon_muzzle.tscn" id="2_76338"]
 [ext_resource type="Script" uid="uid://6m5po2yk6h74" path="res://scripts/skill/drawing/PaintBrushData.cs" id="2_i86it"]
-[ext_resource type="PackedScene" path="res://scenes/skills/ChalkSkillArea.tscn" id="3_skill"]
+[ext_resource type="PackedScene" uid="uid://bqy8fovhcta55" path="res://scenes/skills/ChalkSkillArea.tscn" id="3_skill"]
 
 [sub_resource type="Resource" id="Resource_ifow5"]
 script = ExtResource("2_i86it")
@@ -27,5 +27,5 @@ SkillDamageAreaScene = ExtResource("3_skill")
 
 [node name="ChalkNormal" type="Sprite2D" parent="Visual" unique_id=2080403092]
 position = Vector2(0, 6)
-scale = Vector2(0.2, 0.2)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_rfp0q")

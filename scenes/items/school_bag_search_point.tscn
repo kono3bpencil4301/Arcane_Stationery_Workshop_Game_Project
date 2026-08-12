@@ -1,8 +1,8 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene format=3 uid="uid://du6cvemsp511i"]
 
-[ext_resource type="Script" path="res://scripts/items/search/SchoolBagSearchPoint.cs" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/search_point/Search_School_Bag.png" id="2_closed"]
-[ext_resource type="Texture2D" path="res://assets/search_point/Search_School_Bag_Opened.png" id="3_opened"]
+[ext_resource type="Script" uid="uid://cjfknhll6mj66" path="res://scripts/items/search/SchoolBagSearchPoint.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cdv8b5p533rmy" path="res://assets/search_point/Search_School_Bag.png" id="2_closed"]
+[ext_resource type="Texture2D" uid="uid://bu44q1x18uvpu" path="res://assets/search_point/Search_School_Bag_Opened.png" id="3_opened"]
 [ext_resource type="Resource" path="res://resources/items/consumables/bandage.tres" id="4_bandage"]
 [ext_resource type="Resource" path="res://resources/items/materials/compass_needle_tip.tres" id="5_compass"]
 [ext_resource type="Resource" path="res://resources/items/materials/dry_ink_block.tres" id="6_ink_block"]
@@ -14,30 +14,43 @@
 [ext_resource type="Resource" path="res://resources/items/materials/pigment_powder.tres" id="12_pigment"]
 [ext_resource type="Resource" path="res://resources/items/materials/refill_core_fragment.tres" id="13_refill"]
 [ext_resource type="Resource" path="res://resources/items/materials/thin_metal_piece.tres" id="14_metal"]
-[ext_resource type="Script" path="res://scripts/inventory/InventoryItemData.cs" id="15_item_data"]
+[ext_resource type="Script" uid="uid://nxckwccfsmv5" path="res://scripts/inventory/InventoryItemData.cs" id="15_item_data"]
+[ext_resource type="Texture2D" uid="uid://hotd7epnfw36" path="res://assets/ui/CircularProgressIndicator/Ring_Back.png" id="16_ring_back"]
+[ext_resource type="Texture2D" uid="uid://0qjsygb1o0yf" path="res://assets/ui/CircularProgressIndicator/Ring_Fill.png" id="17_ring_fill"]
+[ext_resource type="AudioStream" uid="uid://ccbc784cefywf" path="res://assets/audio/search/sfx_searching.wav" id="18_searching"]
+[ext_resource type="AudioStream" uid="uid://drvgqkgn5pky1" path="res://assets/audio/search/sfx_search_complete.wav" id="19_search_complete"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_search"]
 radius = 60.0
 
-[node name="SchoolBagSearchPoint" type="Area2D" groups=["search_point"]]
+[node name="SchoolBagSearchPoint" type="Area2D" unique_id=730278615 groups=["search_point"]]
 script = ExtResource("1_script")
+EarlyMinimumInkCoins = 12
+EarlyMaximumInkCoins = 16
+MiddleMinimumInkCoins = 24
+MiddleMaximumInkCoins = 30
+LateMinimumInkCoins = 45
+LateMaximumInkCoins = 60
 OpenedTexture = ExtResource("3_opened")
 BandageItem = ExtResource("4_bandage")
 MaterialItems = Array[ExtResource("15_item_data")]([ExtResource("5_compass"), ExtResource("6_ink_block"), ExtResource("7_eraser"), ExtResource("8_glue"), ExtResource("9_ink_drop"), ExtResource("10_leaf"), ExtResource("11_fiber"), ExtResource("12_pigment"), ExtResource("13_refill"), ExtResource("14_metal")])
+RingBackTexture = ExtResource("16_ring_back")
+RingFillTexture = ExtResource("17_ring_fill")
+SearchingSFX = ExtResource("18_searching")
+SearchCompleteSFX = ExtResource("19_search_complete")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1094125401]
 texture = ExtResource("2_closed")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1935208064]
 shape = SubResource("CircleShape2D_search")
 
-[node name="Prompt" type="Label" parent="."]
+[node name="Prompt" type="Label" parent="." unique_id=635411315]
 visible = false
 offset_left = -90.0
 offset_top = -58.0
 offset_right = 90.0
 offset_bottom = -32.0
-mouse_filter = 2
 text = "左键搜索书包"
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -2,6 +2,10 @@ using Godot;
 
 public static class UiPalette
 {
+    private const string AudioBindingMeta = "ui_audio_feedback_bound";
+    private static AudioStream _uiClickSFX;
+    private static AudioStream _uiHoverSFX;
+
     public static readonly Color Panel = new("11162f");
     public static readonly Color PanelSoft = new("1b2344");
     public static readonly Color ArchiveBlue = new("0d3c70");
@@ -70,5 +74,61 @@ public static class UiPalette
             "disabled",
             MakePanel(Panel, new Color(0.2f, 0.24f, 0.38f, 1.0f))
         );
+
+        BindButtonAudio(button);
+    }
+
+    public static void BindIconControlAudio(Control control)
+    {
+        if (control == null || control.HasMeta(AudioBindingMeta))
+            return;
+
+        control.SetMeta(AudioBindingMeta, true);
+        control.MouseEntered += () => PlaySFX(control, UiHoverSFX);
+        control.GuiInput += inputEvent =>
+        {
+            if (
+                inputEvent is InputEventMouseButton mouseButton &&
+                mouseButton.Pressed &&
+                mouseButton.ButtonIndex == MouseButton.Left
+            )
+            {
+                PlaySFX(control, UiClickSFX);
+            }
+        };
+    }
+
+    private static void BindButtonAudio(Button button)
+    {
+        if (button == null || button.HasMeta(AudioBindingMeta))
+            return;
+
+        button.SetMeta(AudioBindingMeta, true);
+        button.MouseEntered += () =>
+        {
+            if (!button.Disabled)
+                PlaySFX(button, UiHoverSFX);
+        };
+        button.Pressed += () => PlaySFX(button, UiClickSFX);
+    }
+
+    private static AudioStream UiClickSFX =>
+        _uiClickSFX ??= GD.Load<AudioStream>(
+            "res://assets/audio/ui/sfx_ui_click.wav"
+        );
+
+    private static AudioStream UiHoverSFX =>
+        _uiHoverSFX ??= GD.Load<AudioStream>(
+            "res://assets/audio/ui/sfx_ui_hover.wav"
+        );
+
+    private static void PlaySFX(Control source, AudioStream stream)
+    {
+        if (source == null || stream == null || !source.IsInsideTree())
+            return;
+
+        source
+            .GetNodeOrNull<AudioManager>("/root/AudioManager")?
+            .PlaySFX(stream);
     }
 }

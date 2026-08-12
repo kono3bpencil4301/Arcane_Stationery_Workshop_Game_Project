@@ -79,6 +79,8 @@ public partial class TheInkBlob : EnemyBase
         // 墨团的默认基础属性；场景 Inspector 中保存的值仍可覆盖它们。
         MaxHealth = 40f;
         MoveSpeed = 60f;
+        MinimumInkCoinReward = 1;
+        MaximumInkCoinReward = 3;
     }
 
 

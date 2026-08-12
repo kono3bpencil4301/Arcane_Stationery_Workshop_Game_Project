@@ -6,6 +6,11 @@
 [ext_resource type="Texture2D" uid="uid://ccrt6y0qwxfqo" path="res://assets/enemy/002_The_Crispy_Paged_Doll_Dizzy.png" id="3_dizzy"]
 [ext_resource type="Texture2D" uid="uid://b7hqcpsjo5bp5" path="res://assets/icons/warning_icon.png" id="4_warning"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/projectiles/crispy_paper_scrap.tscn" id="5_scrap"]
+[ext_resource type="AudioStream" uid="uid://bja32nxnyx1gk" path="res://assets/audio/enemy/sfx_crisp_paged_doll_hurt_01.wav" id="6_hurt_01"]
+[ext_resource type="AudioStream" uid="uid://bjc8ntomgqlpy" path="res://assets/audio/enemy/sfx_crisp_paged_doll_hurt_02.wav" id="7_hurt_02"]
+[ext_resource type="AudioStream" uid="uid://c2greu03u8txq" path="res://assets/audio/enemy/sfx_crisp_paged_doll_hurt_03.wav" id="8_hurt_03"]
+[ext_resource type="AudioStream" uid="uid://dax3kwikp3xiy" path="res://assets/audio/enemy/sfx_crisp_paged_doll_hurt_death.wav" id="9_death"]
+[ext_resource type="AudioStream" uid="uid://djlmplq4tb0v" path="res://assets/audio/enemy/sfx_warning.wav" id="10_warning_sfx"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_dash_fold"]
 atlas = ExtResource("2_dash")
@@ -14,10 +19,6 @@ region = Rect2(0, 0, 64, 64)
 [sub_resource type="AtlasTexture" id="AtlasTexture_dash_move"]
 atlas = ExtResource("2_dash")
 region = Rect2(64, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_dizzy"]
-atlas = ExtResource("3_dizzy")
-region = Rect2(0, 0, 64, 64)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b7kwb"]
 atlas = ExtResource("1_rpg1t")
@@ -34,6 +35,10 @@ region = Rect2(128, 0, 64, 64)
 [sub_resource type="AtlasTexture" id="AtlasTexture_qpfp2"]
 atlas = ExtResource("1_rpg1t")
 region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dizzy"]
+atlas = ExtResource("3_dizzy")
+region = Rect2(0, 0, 64, 64)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wvhbo"]
 animations = [{
@@ -69,7 +74,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dizzy")
 }],
-"loop": true,
+"loop": 1,
 "name": &"dizzy",
 "speed": 1.0
 }]
@@ -92,19 +97,18 @@ ObservationDuration = 0.5
 ChargeWindupDuration = 0.2
 ChargeSpeedMultiplier = 4.0
 ChargeDamageMultiplier = 1.5
-MaximumChargeDuration = 0.9
+MaximumChargeDuration = 0.6
 WallStunDuration = 0.8
-WallImpactDamage = 5.0
 WarningIconTexture = ExtResource("4_warning")
-ExplosionChance = 0.5
+WarningSFX = ExtResource("10_warning_sfx")
 PaperScrapScene = ExtResource("5_scrap")
-MinimumScrapCount = 3
-MaximumScrapCount = 5
-ScrapDamage = 5.0
-ScrapSpeed = 180.0
-ScrapLifetime = 0.75
-ScrapSpawnRadius = 12.0
+ScrapDamage = 10.0
+ScrapSpeed = 210.0
+ScrapLifetime = 2.5
+MoveSpeed = 100.0
 ContactDamage = 15.0
+EnemyHurtSFX = [ExtResource("6_hurt_01"), ExtResource("7_hurt_02"), ExtResource("8_hurt_03")]
+EnemyDeathSFX = ExtResource("9_death")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1840543123]
 sprite_frames = SubResource("SpriteFrames_wvhbo")

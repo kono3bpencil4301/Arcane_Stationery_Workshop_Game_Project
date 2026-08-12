@@ -13,6 +13,9 @@ public partial class ChalkWeapon : WeaponBase
     [Export]
     public float AttackInterval { get; set; } = 1.1f;
 
+    [Export(PropertyHint.Range, "0,64,1")]
+public float ProjectileSpawnOffset { get; set; } = 18.0f;
+
     private float _cooldownRemaining;
 
     protected override float AutoAttackCooldown =>
@@ -74,7 +77,9 @@ public partial class ChalkWeapon : WeaponBase
 
             nearestDistanceSquared = distanceSquared;
             nearestEnemy = enemy;
+            if(!HasClearShot(Muzzle.GlobalPosition, enemy.GlobalPosition))  continue;
         }
+
 
         return nearestEnemy;
     }
@@ -104,6 +109,8 @@ public partial class ChalkWeapon : WeaponBase
             targetGlobalPosition -
             Muzzle.GlobalPosition;
 
+        var normalizedDirection = direction.Normalized();
+
         if (direction.IsZeroApprox())
         {
             return false;
@@ -116,13 +123,32 @@ public partial class ChalkWeapon : WeaponBase
 
         projectile.GlobalPosition = Muzzle.GlobalPosition;
 
-        projectile.Setup(
-            direction.Normalized(),
-            this
-        );
+        projectile.GlobalPosition =
+            Muzzle.GlobalPosition + normalizedDirection * Mathf.Max(ProjectileSpawnOffset, 0.0f);
+
+        projectile.Setup(normalizedDirection, this);
 
         _cooldownRemaining = AttackInterval;
 
         return true;
+    }
+
+    private bool HasClearShot(Vector2 from, Vector2 to)
+    {
+        World2D world = GetWorld2D();
+
+        if(world == null)
+            return false;
+
+        PhysicsRayQueryParameters2D Query = PhysicsRayQueryParameters2D.Create(from, to);
+
+        Query.CollisionMask = 1u;
+        Query.CollideWithBodies = true;
+        Query.CollideWithAreas = false;
+
+        Godot.Collections.Dictionary result =
+            world.DirectSpaceState.IntersectRay(Query);
+
+        return result.Count == 0;
     }
 }
