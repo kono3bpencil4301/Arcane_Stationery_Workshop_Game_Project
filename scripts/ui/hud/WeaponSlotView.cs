@@ -151,6 +151,7 @@ public partial class WeaponSlotView : PanelContainer
         }
 
         float remaining = instance?.SkillCooldownRemaining ?? 0.0f;
+        float duration = instance?.SkillCooldownDuration ?? 0.0f;
         float ratio = instance?.SkillCooldownRatio ?? 0.0f;
         _cooldownMaterial?.SetShaderParameter("ratio", ratio);
         _cooldownLabel.Text = remaining > 0.0f
@@ -158,6 +159,8 @@ public partial class WeaponSlotView : PanelContainer
             : "";
         TooltipText = instance == null
             ? $"武器槽 {_slotIndex + 1}（空）"
-            : $"{instance.Data.DisplayName}\n技能 CD {remaining:0.0}s";
+            : remaining > 0.0f
+                ? $"{instance.Data.DisplayName}\n技能 CD {duration:0.0}s（剩余 {remaining:0.0}s）"
+                : $"{instance.Data.DisplayName}\n技能 CD {duration:0.0}s（就绪）";
     }
 }

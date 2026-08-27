@@ -7,47 +7,32 @@ public partial class WeaponManager : Node
     private const int MaxWeaponSlot = 3;
     public int SlotCount => MaxWeaponSlot;
 
-
-
-
     [Signal]
     public delegate void WeaponChangedEventHandler(
         int slotIndex,
         Resource weapon
     );
-
-
     [Signal]
     public delegate void SelectedWeaponChangedEventHandler(
         int slotIndex
     );
-
-
     [Signal]
     public delegate void WeaponRemovedEventHandler(
         int slotIndex
     );
-
-
     // 武器挂载点
     [Export]
     public Node2D WeaponMount { get; set; } = null!;
-
-
     // 玩家节点
     [Export]
     public Node2D Player { get; set; } = null!;
-
     [Export]
     public InventoryModel Inventory { get; set; }
-
     // 武器槽位配置（在检查器中分配，槽位0为默认武器）
     [ExportGroup("武器槽位配置")]
     [Export] public WeaponSlotConfig[] WeaponSlots { get; set; } = new WeaponSlotConfig[MaxWeaponSlot];
-
     [Export]
     private PaintStrokeController _paintStrokeController;
-
 
     // 三个武器槽
     private readonly WeaponSlot[] _slots =
@@ -56,13 +41,8 @@ public partial class WeaponManager : Node
         new WeaponSlot(),
         new WeaponSlot()
     };
-
-
     // 当前选中槽位
     private int _selectedSlot = -1;
-
-
-
     public int SelectedSlot
     {
         get
@@ -70,9 +50,6 @@ public partial class WeaponManager : Node
             return _selectedSlot;
         }
     }
-
-
-
     /// <summary>
     /// 当前主动武器
     /// </summary>
@@ -94,19 +71,16 @@ public partial class WeaponManager : Node
 
     public override void _Ready()
     {
-        GD.Print("WeaponManager Ready");
 
         // [Export] NodePath 自动解析可能失败（WeaponManager 继承 Node 但场景中是 Node2D）
         // 手动 fallback：确保 Player 和 WeaponMount 引用有效
         if (!GodotObject.IsInstanceValid(Player))
         {
             Player = GetParent<Node2D>();
-            GD.Print($"[WeaponManager] Player fallback 解析: {Player?.Name}");
         }
         if (!GodotObject.IsInstanceValid(WeaponMount))
         {
             WeaponMount = GetNodeOrNull<Node2D>("WeaponMount");
-            GD.Print($"[WeaponManager] WeaponMount fallback 解析: {WeaponMount?.Name}");
         }
         if (!GodotObject.IsInstanceValid(Inventory))
             Inventory = GetParent()?.GetNodeOrNull<InventoryModel>("Inventory");
@@ -158,9 +132,6 @@ public partial class WeaponManager : Node
             SelectFirstWeapon();
         }
     }
-
-
-
     // ============================================================
     // 输入
     // ============================================================
@@ -185,7 +156,6 @@ public partial class WeaponManager : Node
                     SwitchWeapon(next);
             }
         }
-
         // 数字键切换武器
         if (inputEvent.IsActionPressed("weapon_slot_1"))
             SwitchWeapon(0);
@@ -193,11 +163,7 @@ public partial class WeaponManager : Node
             SwitchWeapon(1);
         if (inputEvent.IsActionPressed("weapon_slot_3"))
             SwitchWeapon(2);
-
-
-
         // 丢弃/拾取武器（Q键上下文相关：优先拾取附近武器，无则丢弃当前武器）
-
         if (inputEvent.IsActionPressed(
             "drop_weapon"))
         {
@@ -209,83 +175,21 @@ public partial class WeaponManager : Node
             }
         }
     }
-
-
-
-
-
     // ============================================================
     // 装备武器
     // ============================================================
     // 判断武器是否可以装备
-
-    public bool EquipWeapon(
-        int slotIndex,
-        WeaponInstance instance)
+    public bool EquipWeapon(int slotIndex, WeaponInstance instance)
     {
-        if (!IsValidSlot(slotIndex))
+        if (
+            !IsValidSlot(slotIndex) ||
+            !_slots[slotIndex].IsEmpty ||
+            instance == null
+        )
             return false;
 
-        if (!_slots[slotIndex].IsEmpty)
-        {
-            GD.Print(
-                "该槽位已有武器"
-            );
-
-            return false;
-        }
-        // 创建武器控制器
-        if (instance.Data.ControllerScene == null)
-        {
-            GD.PrintErr(
-                "武器没有ControllerScene"
-            );
-
-            return false;
-        }
-        Node node =
-            instance.Data.ControllerScene.Instantiate();
-        if (node is not WeaponBase weapon)
-        {
-            GD.PrintErr(
-                "武器场景必须继承WeaponBase"
-            );
-            node.QueueFree();
-            return false;
-        }
-        WeaponMount.AddChild(
-            weapon
-        );
-        weapon.Initialize(
-            instance
-        );
-        weapon.SetEquipped(
-            true
-        );
-        // 是否当前武器
-        weapon.SetSelected(
-            slotIndex == _selectedSlot
-        );
-        _slots[slotIndex].Instance =
-            instance;
-        _slots[slotIndex].Controller =
-            weapon;
-        EmitSignal(
-            SignalName.WeaponChanged,
-            slotIndex,
-            instance.Data
-        );
-        // 如果当前没有武器
-        if (_selectedSlot == -1)
-        {
-            SwitchWeapon(
-                slotIndex
-            );
-        }
-        return true;
+        return SwapSlot(slotIndex, instance, out _);
     }
-
-
     // ============================================================
     // 切换武器
     // ============================================================
@@ -303,170 +207,71 @@ public partial class WeaponManager : Node
                 .Controller?
                 .SetSelected(false);
         }
-
-
-
         // 选择新武器
-
         _selectedSlot =
             slotIndex;
-
-
-
         _slots[_selectedSlot]
             .Controller?
             .SetSelected(true);
 
         UpdatePaintWeapon(CurrentWeapon);
-
         EmitSignal(
             SignalName.SelectedWeaponChanged,
             slotIndex
         );
-
-
-        GD.Print(
-            $"当前武器：{_slots[slotIndex].Instance.Data.DisplayName}"
-        );
-
-
         return true;
     }
-
-
-
-
-
     // ============================================================
     // 丢弃武器
     // ============================================================
 
-
-    public WeaponInstance? RemoveWeapon(
-        int slotIndex)
+    public WeaponInstance? RemoveWeapon(int slotIndex)
     {
-
         if (!IsValidSlot(slotIndex))
             return null;
 
-
-
-        WeaponSlot slot =
-            _slots[slotIndex];
-
-
-
-        if (slot.IsEmpty)
+        bool wasSelected = _selectedSlot == slotIndex;
+        WeaponInstance? removed = RemoveFromSlot(slotIndex);
+        if (removed == null)
             return null;
 
+        EmitSignal(SignalName.WeaponRemoved, slotIndex);
 
-
-        WeaponInstance oldWeapon =
-            slot.Instance!;
-
-
-
-        // 删除控制器
-
-        slot.Controller?
-            .SetSelected(false);
-
-
-        slot.Controller?
-            .SetEquipped(false);
-
-
-
-        slot.Controller?
-            .QueueFree();
-
-
-
-        slot.Instance = null;
-
-        slot.Controller = null;
-
-
-
-        EmitSignal(
-            SignalName.WeaponRemoved,
-            slotIndex
-        );
-
-
-
-        // 如果删除的是当前武器
-
-        if (_selectedSlot == slotIndex)
+        if (wasSelected)
         {
             _selectedSlot = -1;
-
-
             SelectFirstWeapon();
+
+            if (_selectedSlot == -1)
+                UpdatePaintWeapon(null);
         }
 
-
-
-        return oldWeapon;
+        return removed;
     }
-
-
-
-
-
     public bool DropWeapon(
         int slotIndex)
     {
         GD.Print($"[DropWeapon] 开始, slot={slotIndex}, _selectedSlot={_selectedSlot}");
 
         // 槽位 0 为默认武器，不可丢弃
-        if (slotIndex == 0)
-        {
-            GD.Print("[DropWeapon] 默认武器不可丢弃");
-            return false;
-        }
-
+        if (slotIndex == 0) return false;
         WeaponInstance existingWeapon = GetWeapon(slotIndex);
-
-        if (existingWeapon == null || !existingWeapon.CanDrop)
-        {
-            GD.Print("[DropWeapon] 该武器不能丢弃");
-            return false;
-        }
-
-        WeaponInstance? weapon =
-            RemoveWeapon(
-                slotIndex
-            );
-
-        if (weapon == null)
-        {
-            GD.Print("[DropWeapon] RemoveWeapon 返回 null，槽位为空或无效");
-            return false;
-        }
+        if (existingWeapon == null || !existingWeapon.CanDrop) return false;
+        if (!GodotObject.IsInstanceValid(Player) || Player == null) return false;
+        WeaponInstance? weapon = RemoveWeapon(slotIndex);
+        if (weapon == null) return false;
 
         GD.Print($"[DropWeapon] RemoveWeapon 成功: {weapon.Data.DisplayName}, CanDrop={weapon.CanDrop}");
-
         // 在玩家位置生成武器掉落物
         // Player 可能在场景切换等情况下已被销毁
-        if (!GodotObject.IsInstanceValid(Player))
-        {
-            GD.Print("[DropWeapon] Player 节点无效，无法获取位置");
-            return false;
-        }
-
         GD.Print($"[DropWeapon] Player 有效, 位置={Player.GlobalPosition}, 准备创建掉落物");
-
         CreateWeaponPickup(
             weapon,
             Player.GlobalPosition
         );
-
         GD.Print($"[DropWeapon] 丢弃完成: {weapon.Data.DisplayName}");
         return true;
     }
-
-
     // ============================================================
     // 武器掉落物
     // ============================================================
@@ -474,18 +279,13 @@ public partial class WeaponManager : Node
     /// <summary>
     /// 在指定位置生成武器掉落物
     /// </summary>
-    public void CreateWeaponPickup(
-        WeaponInstance instance,
-        Vector2 globalPosition)
+    public void CreateWeaponPickup(WeaponInstance instance, Vector2 globalPosition)
     {
         var drop = new WeaponDropSpawner();
-
         // 先添加到场景树（触发 _Ready 创建碰撞体和连接信号）
         GetTree().CurrentScene.AddChild(drop);
-
         // 再初始化（此时在场景树中，GlobalPosition 和视觉都能正确设置）
         drop.Initialize(instance, globalPosition);
-
         GD.Print($"[WeaponManager] 生成掉落物: {instance.Data.DisplayName} @ {globalPosition}");
     }
 
@@ -496,47 +296,27 @@ public partial class WeaponManager : Node
     {
         foreach (var node in GetTree().GetNodesInGroup("weapon_drops"))
         {
-            if (node is not WeaponDropSpawner drop)
-                continue;
-
-            if (!drop.CanPickup)
-                continue;
-
+            if (node is not WeaponDropSpawner drop) continue;
+            if (!drop.CanPickup) continue;
             int slotIndex = FindEmptySlot();
             if (slotIndex == -1)
             {
                 WeaponInstance backpackWeapon = drop.GetInstance();
-
-                if (
-                    Inventory != null &&
-                    Inventory.TryAddWeapon(backpackWeapon, out _)
-                )
-                {
+                if (Inventory != null && Inventory.TryAddWeapon(backpackWeapon, out _))
                     drop.QueueFree();
-                    GD.Print($"武器槽已满，{backpackWeapon.Data.DisplayName} 已收入背包");
-                }
-                else
-                {
-                    GD.Print("武器槽已满，背包也无法容纳该武器");
-                }
-
                 return true;
             }
-
             WeaponInstance instance = drop.GetInstance();
-            drop.QueueFree();
+            if (EquipWeapon(slotIndex, instance))
+                drop.QueueFree();
 
-            EquipWeapon(slotIndex, instance);
-            GD.Print($"拾取:{instance.Data.DisplayName}");
+            // 附近存在可拾取物时，不应继续执行“丢弃当前武器”。
             return true;
         }
         return false;
     }
 
-    public bool TryEquipInventoryWeapon(
-        InventoryWeaponEntry entry,
-        int slotIndex
-    )
+    public bool TryEquipInventoryWeapon(InventoryWeaponEntry entry, int slotIndex)
     {
         if (
             entry == null ||
@@ -548,53 +328,46 @@ public partial class WeaponManager : Node
             return false;
         }
 
-        WeaponInstance previous = GetWeapon(slotIndex);
-        bool wasSelected = SelectedSlot == slotIndex;
+        WeaponInstance? previousWeapon = GetWeapon(slotIndex);
 
-        if (previous != null && previous.IsBound)
+        if (previousWeapon != null && previousWeapon.IsBound)
             return false;
 
         float projectedWeight =
             Inventory.CurrentWeight -
             entry.TotalWeight +
-            (previous?.Data.Weight ?? 0.0f);
+            (previousWeapon?.Data.Weight ?? 0.0f);
 
         if (projectedWeight > Inventory.MaxWeight + 0.001f)
             return false;
 
         Vector2I originalPosition = entry.GridPosition;
-        Inventory.RemoveEntry(entry, false);
 
-        WeaponInstance removed = previous == null
-            ? null
-            : RemoveWeapon(slotIndex);
+        if (!Inventory.RemoveEntry(entry))
+            return false;
 
+        // 先确认背包确实能容纳旧武器，再提交槽位交换。
+        // 这样 SwapSlot 失败时，原槽位仍保持不变，不需要重建旧控制器。
         InventoryWeaponEntry storedPrevious = null;
         if (
-            removed != null &&
-            !Inventory.TryAddWeapon(removed, out storedPrevious)
+            previousWeapon != null &&
+            !Inventory.TryAddWeapon(previousWeapon, out storedPrevious)
         )
         {
-            EquipWeapon(slotIndex, removed);
-            Inventory.TryAddExisting(entry);
+            RestoreInventoryEntry(entry, originalPosition);
             return false;
         }
 
-        if (EquipWeapon(slotIndex, entry.Weapon))
-        {
-            if (wasSelected)
-                SwitchWeapon(slotIndex);
+        if (SwapSlot(slotIndex, entry.Weapon, out WeaponInstance? outgoing))
             return true;
-        }
 
         if (storedPrevious != null)
-        {
-            Inventory.RemoveEntry(storedPrevious, false);
-            EquipWeapon(slotIndex, storedPrevious.Weapon);
-        }
+            Inventory.RemoveEntry(storedPrevious);
 
-        entry.GridPosition = originalPosition;
-        Inventory.TryAddExisting(entry);
+        RestoreInventoryEntry(entry, originalPosition);
+        GD.PushError(
+            $"无法创建武器控制器：{entry.Weapon.Data.DisplayName}。"
+        );
         return false;
     }
 
@@ -615,16 +388,8 @@ public partial class WeaponManager : Node
 
     public bool DropInventoryWeapon(InventoryWeaponEntry entry)
     {
-        if (
-            entry == null ||
-            Inventory == null ||
-            !Inventory.Contains(entry) ||
-            !entry.Weapon.CanDrop ||
-            !GodotObject.IsInstanceValid(Player)
-        )
-        {
+        if (entry == null || Inventory == null || !Inventory.Contains(entry) || !entry.Weapon.CanDrop || !GodotObject.IsInstanceValid(Player))
             return false;
-        }
 
         if (!Inventory.RemoveEntry(entry))
             return false;
@@ -646,77 +411,12 @@ public partial class WeaponManager : Node
         return -1;
     }
 
-
-
-
-
-
-    // ============================================================
-    // 替换武器
-    // ============================================================
-
-
-    public WeaponInstance? ReplaceWeapon(
-        int slotIndex,
-        WeaponInstance newWeapon)
-    {
-
-        if (!IsValidSlot(slotIndex))
-            return null;
-
-
-
-        WeaponInstance? oldWeapon =
-            RemoveWeapon(
-                slotIndex
-            );
-
-
-
-        bool success =
-            EquipWeapon(
-                slotIndex,
-                newWeapon
-            );
-
-
-
-        if (!success)
-        {
-            // 如果失败恢复旧武器
-
-            if (oldWeapon != null)
-            {
-                EquipWeapon(
-                    slotIndex,
-                    oldWeapon
-                );
-            }
-
-
-            return null;
-        }
-
-
-
-        return oldWeapon;
-    }
-
-
-
-
-
-
-
     // ============================================================
     // 工具函数
     // ============================================================
 
-
-
     private void SelectFirstWeapon()
     {
-
         for (int i = 0; i < MaxWeaponSlot; i++)
         {
             if (!_slots[i].IsEmpty)
@@ -725,32 +425,15 @@ public partial class WeaponManager : Node
                 return;
             }
         }
-
-
-        GD.Print(
-            "当前没有装备武器"
-        );
+        GD.Print("当前没有装备武器");
     }
 
-
-
-
-
-    public WeaponInstance? GetWeapon(
-        int slotIndex)
+    public WeaponInstance? GetWeapon(int slotIndex)
     {
-
         if (!IsValidSlot(slotIndex))
             return null;
-
-
         return _slots[slotIndex].Instance;
     }
-
-
-
-
-
     public bool HasEmptySlot()
     {
         foreach (var slot in _slots)
@@ -758,14 +441,8 @@ public partial class WeaponManager : Node
             if (slot.IsEmpty)
                 return true;
         }
-
-
         return false;
     }
-
-
-
-
 
     private bool IsValidSlot(
         int slot)
@@ -804,7 +481,7 @@ public partial class WeaponManager : Node
         return -1;
     }
 
-    private void UpdatePaintWeapon(WeaponBase currentWeapon)
+    private void UpdatePaintWeapon(WeaponBase? currentWeapon)
     {
         IPaintSkillWeapon paintWeapon = currentWeapon as IPaintSkillWeapon;
 
@@ -820,4 +497,101 @@ public partial class WeaponManager : Node
         _paintStrokeController.SetActiveWeapon(paintWeapon);
     }
 
+    private bool SwapSlot(int slotIndex, WeaponInstance incoming, out WeaponInstance? outgoing)
+    {
+        outgoing = null;
+
+        if (!IsValidSlot(slotIndex) || incoming == null)
+            return false;
+
+        WeaponBase? incomingController = CreateController(incoming);
+        if (incomingController == null)
+            return false;
+
+        bool wasSelected = _selectedSlot == slotIndex;
+
+        outgoing = RemoveFromSlot(slotIndex);
+
+        WeaponSlot slot = _slots[slotIndex];
+        slot.Instance = incoming;
+        slot.Controller = incomingController;
+        if (wasSelected)
+        {
+            incomingController.SetSelected(true);
+            UpdatePaintWeapon(incomingController);
+        }
+        else if (_selectedSlot == -1)
+        {
+            SwitchWeapon(slotIndex);
+        }
+
+        if (outgoing != null)
+            EmitSignal(SignalName.WeaponRemoved, slotIndex);
+
+        EmitSignal(SignalName.WeaponChanged, slotIndex, incoming.Data);
+
+        return true;
+    }
+
+    private WeaponInstance? RemoveFromSlot(int slotIndex)
+    {
+        if (!IsValidSlot(slotIndex))
+            return null;
+
+        WeaponSlot slot = _slots[slotIndex];
+        WeaponInstance? outgoing = slot.Instance;
+        if (outgoing == null)
+        {
+            return null;
+        }
+
+        WeaponBase? controller = slot.Controller;
+
+        slot.Instance = null;
+        slot.Controller = null;
+
+        controller?.SetSelected(false);
+        controller?.SetEquipped(false);
+        controller?.QueueFree();
+
+        return outgoing;
+    }
+
+    private WeaponBase? CreateController(WeaponInstance instance)
+    {
+        PackedScene scene = instance.Data.ControllerScene;
+        if (scene == null || !GodotObject.IsInstanceValid(WeaponMount))
+            return null;
+        Node node = scene.Instantiate();
+        if (node is not WeaponBase controller)
+        {
+            GD.PushError("武器场景必须继承 WeaponBase。");
+            node.QueueFree();
+            return null;
+        }
+
+        WeaponMount.AddChild(controller);
+        controller.Initialize(instance);
+        controller.SetEquipped(true);
+        controller.SetSelected(false);
+
+        return controller;
+    }
+
+    private void RestoreInventoryEntry(
+        InventoryWeaponEntry entry,
+        Vector2I originalPosition
+    )
+    {
+        if (Inventory == null || !Inventory.TryAddExisting(entry))
+        {
+            GD.PushError(
+                $"无法回滚背包武器：{entry.Weapon.Data.DisplayName}。"
+            );
+            return;
+        }
+
+        if (entry.GridPosition != originalPosition)
+            Inventory.TryMoveEntry(entry, originalPosition);
+    }
 }
